@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서울시 응급의료 관제 시스템 (SEOUL EMERGENCY HUB)</title>
+    <!-- Pretendard Font & FontAwesome Icons -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS & Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            bgStart: '#f8fafc',
+                            bgEnd: '#f1f5f9',
+                            primary: '#059669',
+                            primaryHover: '#047857',
+                            emerald: '#10b981',
+                            teal: '#0d9488',
+                            alertRed: '#dc2626',
+                            alertLightRed: '#fef2f2',
+                            alertBorder: '#fca5a5',
+                            darkGreen: '#166534',
+                            border: '#cbd5e1',
+                            textDark: '#0f172a',
+                            textMuted: '#64748b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 50%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Clean White Medical Card */
+        .medical-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .medical-card:hover {
+            border-color: #059669;
+            box-shadow: 0 10px 25px -4px rgba(5, 150, 105, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        /* Emergency Highlight Cards */
+        .emergency-card-high {
+            background: #ffffff;
+            border: 1.5px solid #f87171 !important;
+            box-shadow: 0 4px 20px -2px rgba(220, 38, 38, 0.12);
+        }
+        .emergency-card-high:hover {
+            border-color: #dc2626 !important;
+            box-shadow: 0 10px 28px -4px rgba(220, 38, 38, 0.22);
+        }
+
+        /* Emergency Pulse Effects */
+        @keyframes emergencyPulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+            70% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .pulse-alert-icon {
+            animation: emergencyPulse 1.8s infinite;
+            border-radius: 9999px;
+        }
+
+        @keyframes sirenGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.15); }
+        }
+        .siren-active {
+            animation: sirenGlow 1.2s infinite ease-in-out;
+        }
+
+        /* Nav Tab Styling */
+        .tab-btn {
+            position: relative;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #64748b;
+            border-radius: 0.875rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: #059669;
+            background: #ecfdf5;
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        /* Chart Canvas Wrapper */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Custom Badges */
+        .med-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.725rem;
+            font-weight: 800;
+        }
+
+        .badge-coral {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .badge-amber {
+            background: #fffbebfb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-emerald {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-teal {
+            background: #f0fdfa;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+        }
+
+        /* Custom Ticker Marquee Animation */
+        @keyframes tickerMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-wrapper {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-content {
+            display: inline-block;
+            animation: tickerMove 28s linear infinite;
+        }
+        .ticker-wrapper:hover .ticker-content {
+            animation-play-state: paused;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-900 flex flex-col min-h-screen">
+
+    <!-- Top Emergency Live Alert Ticker Banner -->
+    <div class="bg-red-600 text-white px-4 py-1.5 text-xs font-extrabold flex items-center gap-3 shadow-sm border-b border-red-700 z-50">
+        <div class="flex items-center gap-1.5 bg-red-800 px-2.5 py-0.5 rounded-md shrink-0 shadow-inner">
+            <i class="fa-solid fa-lightbulb text-yellow-300 siren-active"></i>
+            <span class="tracking-wider">EMERGENCY ALERT</span>
+        </div>
+        <div class="ticker-wrapper flex-1 text-[11.5px] font-medium tracking-tight">
+            <div class="ticker-content flex items-center gap-8">
+                <span><strong class="text-yellow-200">[긴급 수발신]</strong> 강남구 중앙응급센터 중증소아 응급병상 포화 (가용 0석) ➔ 서초구/송파구 연계 재라우팅 실시 중</span>
+                <span><strong class="text-yellow-200">[AI 이송경보]</strong> 마포구/서대문구 신촌 로터리 부근 이송 차량 지체 지수 증가 (평균 +14분 지연)</span>
+                <span><strong class="text-yellow-200">[실시간 수배]</strong> 영등포구 여의도 성모병원 뇌혈관 전문 의료진 수술실 긴급 확보 (가용 2석)</span>
+                <!-- Duplicate for seamless scroll -->
+                <span><strong class="text-yellow-200">[긴급 수발신]</strong> 강남구 중앙응급센터 중증소아 응급병상 포화 (가용 0석) ➔ 서초구/송파구 연계 재라우팅 실시 중</span>
+                <span><strong class="text-yellow-200">[AI 이송경보]</strong> 마포구/서대문구 신촌 로터리 부근 이송 차량 지체 지수 증가 (평균 +14분 지연)</span>
+            </div>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 shrink-0 text-[11px] bg-red-700/80 px-2 py-0.5 rounded">
+            <i class="fa-solid fa-tower-broadcast text-yellow-300"></i>
+            <span>관제 연결 25 / 25 구</span>
+        </div>
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-3.5 flex flex-wrap justify-between items-center gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-emerald-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-red-600/20">
+                    <i class="fa-solid fa-truck-medical"></i>
+                </div>
+                <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-600 border-2 border-white"></span>
+                </span>
+            </div>
+            <div>
+                <h1 class="font-black text-lg tracking-tight text-slate-900 flex items-center gap-2">
+                    SEOUL <span class="text-emerald-600">EMERGENCY HUB</span>
+                    <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 font-extrabold tracking-wider">LIVE RESPONSE</span>
+                </h1>
+                <p class="text-xs text-slate-500 font-bold tracking-wide">서울시 25개 자치구 응급의료 및 이송 관제 시스템 (1차 모형도)</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+            <button onclick="switchTab('analysis')" id="btn-tab-analysis" class="tab-btn active">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>1. 시계열 분석</span>
+            </button>
+            <button onclick="switchTab('predict')" id="btn-tab-predict" class="tab-btn">
+                <i class="fa-solid fa-brain"></i>
+                <span>2. AI 예측 모델</span>
+            </button>
+            <button onclick="switchTab('realtime')" id="btn-tab-realtime" class="tab-btn">
+                <i class="fa-solid fa-square-plus"></i>
+                <span>3. 실시간 병상 관제</span>
+            </button>
+        </nav>
+
+        <!-- Live Sync Status Badge -->
+        <div class="hidden lg:flex items-center gap-2.5 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-800 shadow-sm">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+            <span>비상 수응관제 망 실시간 연동 중</span>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-6 md:p-8 space-y-6">
+
+        <!-- ==================================================== -->
+        <!-- TAB 1: 시계열 분석 (Time-Series Analysis) -->
+        <!-- ==================================================== -->
+        <section id="tab-analysis" class="space-y-6">
+            <!-- Top Controls -->
+            <div class="medical-card p-5 flex flex-wrap justify-between items-center gap-4 border-l-4 border-l-emerald-600">
+                <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-600"></i> 자치구별 시계열 & 응급 자원 심층 분석
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5 font-medium">서울시 25개 구의 주/야간 인구, 긴급 이송 건수, 응급실 가용 병상 5개년 트렌드 빅데이터</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-location-dot text-emerald-600"></i> 관제 자치구 선택:
+                    </label>
+                    <select id="analysis-district-select" onchange="onAnalysisDistrictChange()" class="bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none min-w-[180px] shadow-sm">
+                        <!-- JS Dynamic Options -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- 4 Grid Chart Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chart 1 -->
+                <div class="medical-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-emerald-600"></i> 1. 서울 주요 자치구 인구 밀집 (주/야간 비교)
+                        </h3>
+                        <span class="med-badge badge-emerald">단위: 만 명</span>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="chart1"></canvas></div>
+                </div>
+
+                <!-- Chart 2 -->
+                <div class="medical-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-amber-500"></i> 2. 유동인구 피크 vs 긴급 이송 발생 상관성
+                        </h3>
+                        <span class="med-badge badge-amber">시간대별 상관성</span>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="chart2"></canvas></div>
+                </div>
+
+                <!-- Chart 3 -->
+                <div class="medical-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-truck-medical text-red-600"></i> 3. <span id="chart3-title-district" class="text-red-600 font-black">강남구</span> 연간 긴급 환자 이송 추이 (2021-2025)
+                        </h3>
+                        <span class="med-badge badge-coral">이송 건수</span>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="chart3"></canvas></div>
+                </div>
+
+                <!-- Chart 4 -->
+                <div class="medical-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bed-pulse text-emerald-600"></i> 4. <span id="chart4-title-district" class="text-emerald-600 font-black">강남구</span> 응급실 평균 가용 병상 추이
+                        </h3>
+                        <span class="med-badge badge-teal">가용 병상 수</span>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="chart4"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 2: AI 예측 모델 (AI Prediction Engine) -->
+        <!-- ==================================================== -->
+        <section id="tab-predict" class="hidden space-y-6">
+            <!-- Filter Bar -->
+            <div class="medical-card p-5 flex flex-wrap gap-4 items-end border-t-4 border-t-red-600">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block mb-1.5 text-xs font-bold text-slate-700">자치구 선택</label>
+                    <select id="predict-district-filter" onchange="renderPredictCards()" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl w-full p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="all">전체 자치구 (25개 구 전체)</option>
+                    </select>
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block mb-1.5 text-xs font-bold text-slate-700">시간대 선택 (2시간 단위)</label>
+                    <select id="predict-time-filter" onchange="renderPredictCards()" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl w-full p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="00">00:00 ~ 02:00 (야간 응급 피크)</option>
+                        <option value="02">02:00 ~ 04:00</option>
+                        <option value="04">04:00 ~ 06:00</option>
+                        <option value="06">06:00 ~ 08:00</option>
+                        <option value="08">08:00 ~ 10:00</option>
+                        <option value="10" selected>10:00 ~ 12:00 (주간 활성)</option>
+                        <option value="12">12:00 ~ 14:00</option>
+                        <option value="14">14:00 ~ 16:00</option>
+                        <option value="16">16:00 ~ 18:00</option>
+                        <option value="18">18:00 ~ 20:00 (퇴근 이송 피크)</option>
+                        <option value="20">20:00 ~ 22:00</option>
+                        <option value="22">22:00 ~ 24:00</option>
+                    </select>
+                </div>
+
+                <div class="flex-1 min-w-[220px]">
+                    <label class="block mb-1.5 text-xs font-bold text-slate-700">병원 / 키워드 검색</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="predict-search-input" onkeyup="renderPredictCards()" placeholder="병원명 또는 자치구 이름 입력..." class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-medium rounded-xl w-full pl-9 pr-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <button onclick="renderPredictCards()" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black text-xs py-2.5 px-6 rounded-xl transition shadow-md shadow-red-600/20 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> AI 실시간 재예측
+                </button>
+            </div>
+
+            <!-- Top Summary Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="medical-card p-5 border-l-4 border-l-red-600 flex justify-between items-center bg-gradient-to-r from-red-50/40 to-white">
+                    <div>
+                        <div class="text-xs font-extrabold text-red-600 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation siren-active"></i> 범위 내 향후 1달(30일) 예상 총 긴급 이송
+                        </div>
+                        <div class="text-3xl font-black text-slate-900">5,420 <span class="text-sm font-bold text-slate-500">건</span></div>
+                        <div class="text-xs text-red-700 font-bold mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-chart-line"></i> Prophet 기반 시계열 30일 예측 연동 완료
+                        </div>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center text-xl shadow-inner pulse-alert-icon">
+                        <i class="fa-solid fa-truck-medical"></i>
+                    </div>
+                </div>
+
+                <div class="medical-card p-5 border-l-4 border-l-amber-500 flex justify-between items-center bg-gradient-to-r from-amber-50/40 to-white">
+                    <div>
+                        <div class="text-xs font-extrabold text-amber-700 mb-1">주요 예측 위험 원인 Top 2 (Random Forest)</div>
+                        <div class="text-base font-black text-slate-900">1위: 급성 심혈관/뇌혈관 질환 <span class="text-xs text-red-600 font-extrabold">(42.8%)</span></div>
+                        <div class="text-xs font-bold text-slate-700 mt-0.5">2위: 보행자/차량 교통사고 <span class="text-xs text-amber-600 font-extrabold">(23.1%)</span></div>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-shield-cat"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- District Prediction Cards Grid -->
+            <div id="predict-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JS Dynamic Render -->
+            </div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 3: 실시간 응급실 병상 관제 (Real-time Control) -->
+        <!-- ==================================================== -->
+        <section id="tab-realtime" class="hidden space-y-6">
+            <!-- Counter Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="medical-card p-4 border-l-4 border-l-emerald-600">
+                    <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                        <i class="fa-solid fa-map-location-dot text-emerald-600"></i> 관제 대상 자치구
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 mt-1">25개 구 전체</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-red-600 bg-red-50/30">
+                    <div class="flex items-center gap-2 text-red-600 text-xs font-extrabold">
+                        <i class="fa-solid fa-circle-exclamation siren-active"></i> 응급 포화/위험 (Critical)
+                    </div>
+                    <div class="text-2xl font-black text-red-600 mt-1">5개 구</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-amber-500">
+                    <div class="flex items-center gap-2 text-amber-600 text-xs font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 응급 포화 주의 (Warning)
+                    </div>
+                    <div class="text-2xl font-black text-amber-600 mt-1">8개 구</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-teal-600">
+                    <div class="flex items-center gap-2 text-teal-700 text-xs font-bold">
+                        <i class="fa-solid fa-bed-pulse"></i> 서울시 총 가용 병상
+                    </div>
+                    <div class="text-2xl font-black text-teal-800 mt-1">112 석</div>
+                </div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="medical-card p-4 space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="realtime-search-input" onkeyup="filterRealtime()" placeholder="25개 자치구 또는 병원 이름 검색 (예: 강남구, 신촌세브란스, 서울대병원...)" class="w-full bg-slate-50 border border-slate-300 text-xs font-medium rounded-xl pl-9 pr-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                
+                <div class="flex flex-wrap gap-3">
+                    <select id="realtime-zone-filter" onchange="filterRealtime()" class="flex-1 bg-slate-50 border border-slate-300 text-xs text-slate-800 font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="all">전체 권역 보기 (25개 자치구)</option>
+                        <option value="도심권">도심권 (종로, 중구, 용산)</option>
+                        <option value="동북권">동북권 (성동, 광진, 동대문, 중랑, 성북, 강북, 도봉, 노원)</option>
+                        <option value="서북권">서북권 (은평, 서대문, 마포)</option>
+                        <option value="서남권">서남권 (양천, 강서, 구로, 금천, 영등포, 동작, 관악)</option>
+                        <option value="동남권">동남권 (서초, 강남, 송파, 강동)</option>
+                    </select>
+
+                    <select id="realtime-risk-filter" onchange="filterRealtime()" class="flex-1 bg-slate-50 border border-slate-300 text-xs text-slate-800 font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="all">전체 위험도 보기</option>
+                        <option value="high">🚨 긴급 포화/위험 (High Critical)</option>
+                        <option value="medium">⚠️ 포화 주의 (Medium Warning)</option>
+                        <option value="low">✅ 가용 원활 (Low Normal)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Realtime Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="realtime-card-grid">
+                <!-- JS Dynamic Render -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Application Logic & Scripts -->
+    <script>
+        // 1. 서울시 25개 자치구 데이터셋
+        const districtNames = [
+            { name: "강남구", zone: "동남권" }, { name: "강동구", zone: "동남권" }, { name: "강북구", zone: "동북권" },
+            { name: "강서구", zone: "서남권" }, { name: "관악구", zone: "서남권" }, { name: "광진구", zone: "동북권" },
+            { name: "구로구", zone: "서남권" }, { name: "금천구", zone: "서남권" }, { name: "노원구", zone: "동북권" },
+            { name: "도봉구", zone: "동북권" }, { name: "동대문구", zone: "동북권" }, { name: "동작구", zone: "서남권" },
+            { name: "마포구", zone: "서북권" }, { name: "서대문구", zone: "서북권" }, { name: "서초구", zone: "동남권" },
+            { name: "성동구", zone: "동북권" }, { name: "성북구", zone: "동북권" }, { name: "송파구", zone: "동남권" },
+            { name: "양천구", zone: "서남권" }, { name: "영등포구", zone: "서남권" }, { name: "용산구", zone: "도심권" },
+            { name: "은평구", zone: "서북권" }, { name: "종로구", zone: "도심권" }, { name: "중구", zone: "도심권" },
+            { name: "중랑구", zone: "동북권" }
+        ];
+
+        const seoul25Data = districtNames.map((d, index) => {
+            const assignedRisk = index % 3 === 0 ? 'high' : index % 3 === 1 ? 'medium' : 'low';
+            const baseAccidents = 80 + (index * 7) % 70;
+
+            return {
+                name: d.name,
+                zone: d.zone,
+                pop: `${(300000 + (index * 12345) % 250000).toLocaleString()}명`,
+                risk: assignedRisk,
+                predAccidents: baseAccidents,
+                causes: [
+                    { c: "급성 심뇌혈관 질환", r: `${40 + (index % 10)}%` },
+                    { c: "교통사고 / 외상", r: `${20 + (index % 8)}%` }
+                ],
+                historyDispatches: [baseAccidents*30, baseAccidents*32, baseAccidents*31, baseAccidents*35, baseAccidents*38],
+                historyBeds: [12 - (index%5), 10 - (index%4), 8 - (index%3), 6 - (index%3), 4 + (index%4)],
+                hospitals: [
+                    { 
+                        name: `${d.name} 권역응급센터`, 
+                        type: "권역센터", 
+                        beds: assignedRisk === 'high' ? 0 : assignedRisk === 'medium' ? 2 : 6,
+                        status: assignedRisk === 'high' ? '긴급 포화 (0석)' : assignedRisk === 'medium' ? '혼잡' : '가용 원활',
+                        turnover: assignedRisk === 'high' ? '병상 체증 심화' : '정상 회전'
+                    },
+                    { 
+                        name: `${d.name} 서울대학/성모병원`, 
+                        type: "지역센터", 
+                        beds: assignedRisk === 'high' ? 1 : assignedRisk === 'medium' ? 3 : 8,
+                        status: assignedRisk === 'high' ? '주의' : assignedRisk === 'medium' ? '보통' : '가용 원활',
+                        turnover: '양호'
+                    }
+                ]
+            };
+        });
+
+        // 2. Tab Controller
+        function switchTab(tabName) {
+            ['analysis', 'predict', 'realtime'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).classList.remove('active');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'analysis') {
+                const selectedDistrict = document.getElementById('analysis-district-select').value || '강남구';
+                initCharts(selectedDistrict);
+            } else if (tabName === 'predict') {
+                renderPredictCards();
+            } else if (tabName === 'realtime') {
+                filterRealtime();
+            }
+        }
+
+        // 3. Populate Select Dropdowns
+        function populateDistrictSelects() {
+            const analysisSelect = document.getElementById('analysis-district-select');
+            const predictSelect = document.getElementById('predict-district-filter');
+
+            analysisSelect.innerHTML = seoul25Data.map(d => `<option value="${d.name}">${d.name} (${d.zone})</option>`).join('');
+            predictSelect.innerHTML = `<option value="all">전체 자치구 (25개 구 전체)</option>` + 
+                seoul25Data.map(d => `<option value="${d.name}">${d.name} (${d.zone})</option>`).join('');
+        }
+
+        function onAnalysisDistrictChange() {
+            const selectedDistrict = document.getElementById('analysis-district-select').value;
+            document.getElementById('chart3-title-district').innerText = selectedDistrict;
+            document.getElementById('chart4-title-district').innerText = selectedDistrict;
+            initCharts(selectedDistrict);
+        }
+
+        // 4. Chart.js Red/Teal Emergency Alert Theme Engine
+        let chartInstances = {};
+        function initCharts(selectedDistrictName) {
+            Chart.defaults.color = '#475569';
+            Chart.defaults.font.size = 11;
+            Chart.defaults.font.family = "'Pretendard', sans-serif";
+
+            const targetData = seoul25Data.find(d => d.name === selectedDistrictName) || seoul25Data[0];
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        labels: { 
+                            boxWidth: 12,
+                            font: { weight: '700', color: '#334155' }
+                        } 
+                    } 
+                },
+                scales: {
+                    x: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b' } },
+                    y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b' } }
+                }
+            };
+
+            ['chart1', 'chart2', 'chart3', 'chart4'].forEach(id => {
+                if (chartInstances[id]) chartInstances[id].destroy();
+            });
+
+            // Chart 1: 주/야간 인구
+            chartInstances['chart1'] = new Chart(document.getElementById('chart1'), {
+                type: 'bar',
+                data: {
+                    labels: ['강남구', '마포구', '영등포구', '종로구', '송파구', '관악구'],
+                    datasets: [
+                        { label: '주간 인구 (만)', data: [82, 54, 61, 42, 68, 48], backgroundColor: '#059669', borderRadius: 6 },
+                        { label: '야간 인구 (만)', data: [51, 62, 43, 29, 65, 52], backgroundColor: '#0d9488', borderRadius: 6 }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            // Chart 2: 시간대별 유동인구 vs 이송량
+            chartInstances['chart2'] = new Chart(document.getElementById('chart2'), {
+                type: 'line',
+                data: {
+                    labels: ['00시', '04시', '08시', '12시', '16시', '20시', '24시'],
+                    datasets: [
+                        { label: '유동인구 피크 지수', data: [25, 15, 65, 88, 92, 72, 35], borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.08)', tension: 0.3, fill: true },
+                        { label: '긴급 환자 이송량', data: [14, 9, 38, 52, 58, 41, 24], borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.08)', tension: 0.3, fill: true }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            // Chart 3: 연간 환자 이송 건수 (Red Alert)
+            chartInstances['chart3'] = new Chart(document.getElementById('chart3'), {
+                type: 'line',
+                data: {
+                    labels: ['2021년', '2022년', '2023년', '2024년', '2025년 (예측)'],
+                    datasets: [{
+                        label: `${targetData.name} 연간 긴급 이송 건수`,
+                        data: targetData.historyDispatches,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // Chart 4: 평균 가용 병상 (Emerald/Teal)
+            chartInstances['chart4'] = new Chart(document.getElementById('chart4'), {
+                type: 'line',
+                data: {
+                    labels: ['2021년', '2022년', '2023년', '2024년', '2025년 (현재)'],
+                    datasets: [{
+                        label: `${targetData.name} 평균 가용 병상 수`,
+                        data: targetData.historyBeds,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // 5. Predict Tab Cards Renderer
+        function renderPredictCards() {
+            const districtFilter = document.getElementById('predict-district-filter').value;
+            const searchKeyword = document.getElementById('predict-search-input').value.toLowerCase();
+            const grid = document.getElementById('predict-card-grid');
+
+            const filteredData = seoul25Data.filter(d => {
+                const matchDistrict = districtFilter === 'all' || d.name === districtFilter;
+                const matchKeyword = d.name.toLowerCase().includes(searchKeyword) || 
+                                     d.hospitals.some(h => h.name.toLowerCase().includes(searchKeyword));
+                return matchDistrict && matchKeyword;
+            });
+
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 font-bold">검색 조건과 일치하는 자치구 데이터가 없습니다.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filteredData.map(d => `
+                <div class="medical-card p-5 space-y-4 ${d.risk === 'high' ? 'emergency-card-high' : ''}">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <div>
+                            <h4 class="text-base font-black text-slate-900 flex items-center gap-1.5">
+                                ${d.risk === 'high' ? '<i class="fa-solid fa-triangle-exclamation text-red-600 siren-active"></i>' : ''}
+                                ${d.name} <span class="text-xs text-slate-500 font-bold">(${d.zone})</span>
+                            </h4>
+                            <span class="text-[11px] text-slate-500 font-medium">등록 인구: ${d.pop}</span>
+                        </div>
+                        <span class="med-badge ${
+                            d.risk === 'high' ? 'badge-coral' : 
+                            d.risk === 'medium' ? 'badge-amber' : 
+                            'badge-emerald'
+                        }">
+                            ${d.risk === 'high' ? '🚨 긴급 포화' : d.risk === 'medium' ? '⚠️ 주의' : '✅ 원활'}
+                        </span>
+                    </div>
+
+                    <div class="bg-slate-50/90 p-3 rounded-xl border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-700 font-bold"><i class="fa-solid fa-truck-medical text-red-600 mr-1"></i> AI 예상 긴급 이송량</span>
+                            <span class="font-black text-red-600">${d.predAccidents} 건 / 일</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 border-t border-slate-200/80 pt-2">
+                            <span class="block mb-1 font-bold text-slate-800">🚨 예측 위험 원인 Top 2:</span>
+                            <div class="flex gap-1.5 flex-wrap">
+                                ${d.causes.map((c, i) => `
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${i===0 ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}">
+                                        ${c.c} (${c.r})
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-xs space-y-2 pt-1">
+                        <div class="font-bold text-slate-800 flex justify-between items-center">
+                            <span><i class="fa-solid fa-hospital text-emerald-600 mr-1"></i> 예측 시점 가용 병상</span>
+                            <span class="text-[10px] text-slate-400 font-normal">실시간 연동</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            ${d.hospitals.map(h => `
+                                <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-[11px] shadow-2xs">
+                                    <div>
+                                        <span class="text-slate-900 font-bold block">${h.name}</span>
+                                        <span class="text-slate-500 text-[10px]">${h.type} | ${h.turnover}</span>
+                                    </div>
+                                    <span class="font-extrabold px-2 py-0.5 rounded ${h.beds > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200 siren-active'}">
+                                        ${h.beds} 석 (${h.status})
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 6. Realtime Tab Filter & Renderer
+        function filterRealtime() {
+            const searchVal = document.getElementById('realtime-search-input').value.toLowerCase();
+            const zoneVal = document.getElementById('realtime-zone-filter').value;
+            const riskVal = document.getElementById('realtime-risk-filter').value;
+            const grid = document.getElementById('realtime-card-grid');
+
+            const filtered = seoul25Data.filter(d => {
+                const matchSearch = d.name.toLowerCase().includes(searchVal) || 
+                                    d.hospitals.some(h => h.name.toLowerCase().includes(searchVal));
+                const matchZone = zoneVal === 'all' || d.zone === zoneVal;
+                const matchRisk = riskVal === 'all' || d.risk === riskVal;
+                return matchSearch && matchZone && matchRisk;
+            });
+
+            grid.innerHTML = filtered.map(d => `
+                <div class="medical-card p-5 space-y-4 ${d.risk === 'high' ? 'emergency-card-high' : ''}">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-base font-black text-slate-900 flex items-center gap-1.5">
+                                ${d.risk === 'high' ? '<i class="fa-solid fa-triangle-exclamation text-red-600 siren-active"></i>' : ''}
+                                ${d.name}
+                            </h3>
+                            <span class="text-xs text-slate-500 font-bold">${d.zone}</span>
+                        </div>
+                        <span class="med-badge ${
+                            d.risk === 'high' ? 'badge-coral' : 
+                            d.risk === 'medium' ? 'badge-amber' : 
+                            'badge-emerald'
+                        }">
+                            ${d.risk === 'high' ? '🚨 긴급 포화' : d.risk === 'medium' ? '⚠️ 주의' : '✅ 원활'}
+                        </span>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        ${d.hospitals.map(h => `
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-slate-900">${h.name}</span>
+                                    <span class="text-xs font-black ${h.beds > 0 ? 'text-emerald-700' : 'text-red-600'}">${h.beds} 석</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[11px] text-slate-500 font-medium">
+                                    <span>상태: ${h.status}</span>
+                                    <span>회전율: ${h.turnover}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            populateDistrictSelects();
+            initCharts('강남구');
+            renderPredictCards();
+            filterRealtime();
+        };
+    </script>
+</body>
+</html>
