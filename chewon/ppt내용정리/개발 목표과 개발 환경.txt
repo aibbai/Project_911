@@ -1,0 +1,25 @@
+개발 목표
+① 구급 수요 분석·예측
+서울시 자치구별 구급 수요와 생활인구 패턴 분석 및 미래 수요 예측
+② 구급차 배치 활용
+지역·시기별 수요 예측을 통해 구급차 배치에 활용할 수 있는 정보 제공
+③ 응급의료 정보 통합
+응급의료시설·실시간 가용병상 정보를 연계한 웹 서비스 구축
+<카드형식 3개로 나누기>
+
+[개발 환경]
+- 운영체제 : Windows
+- 개발 언어 : Python
+- 개발 도구 : Visual Studio Code (VS Code)
+- 데이터 처리 : Pandas, NumPy
+- 데이터 시각화 : Matplotlib, Seaborn
+- 머신러닝 : Scikit-learn
+- 딥러닝 : TensorFlow / Keras
+
+- 사용 모델
+  · Linear Regression
+  · Ridge Regression
+  · Decision Tree
+  · Random Forest
+  · Gradient Boosting
+  · DNN
