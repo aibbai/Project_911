@@ -1,0 +1,12 @@
+﻿특성조합,모델,R2,MAE,정확도(%)
+A_계절,LinearRegression,-0.14,188.7,74.17
+A_계절,RandomForest,0.625,117.1,86.7
+B_계절+인구,LinearRegression,0.378,150.2,81.42
+B_계절+인구,RandomForest,0.698,100.8,88.36
+C_계절+인구+이송률,LinearRegression,0.677,106.5,87.74
+C_계절+인구+이송률,RandomForest,0.75,89.8,89.57
+D_계절+이송이력,LinearRegression,0.918,48.3,94.59
+D_계절+이송이력,RandomForest,0.928,47.5,94.67
+E_전체,LinearRegression,0.923,45.9,94.82
+E_전체,RandomForest,0.928,47.6,94.68
+기준선(전월값),-,0.902,52.8,94.08
