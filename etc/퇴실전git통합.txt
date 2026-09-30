@@ -1,0 +1,23 @@
+1) 항상 브런치 위치는 내 브런치로 하고 작업합니다.
+
+2) 퇴실전 push후 
+ⓐ git branch 로 내 branch 위치 확인
+ⓑ git add .
+ⓒ git commit -m "버전 이름"
+ⓓ git push origin 내브런치명
+
+3) 팀원 모두 push후 각각 merge
+ⓐ github사이트에서 pull requests메뉴나 Compare&pullrequest버튼을 통해 한브런치씩 통합
+
+4) 모두 merge 후 pull
+ⓐ 내 브런치에서 git pull origin master
+- git branch
+- git pull origin master
+ⓑ master브런치에서 git pull origin master
+- git checkout master
+- git pull origin master
+ⓒ 최종 내 브런치로 돌아오고, 퇴실태그 부탁드립니다
+- git checkout 내브런치명
+
+
+
