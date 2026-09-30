@@ -1,0 +1,456 @@
+{
+  "version": 2,
+  "saved_at": "2026-09-30T12:44:00",
+  "master": {
+    "A1100006": {
+      "Hospital_ID": "A1100006",
+      "Hospital_Name": "강북삼성병원",
+      "Tel": "02-2001-2001",
+      "District": "종로구"
+    },
+    "A1100017": {
+      "Hospital_ID": "A1100017",
+      "Hospital_Name": "서울대학교병원",
+      "Tel": "02-1588-5700",
+      "District": "종로구"
+    },
+    "A1107402": {
+      "Hospital_ID": "A1107402",
+      "Hospital_Name": "서울대학교치과병원",
+      "Tel": "1522-2700",
+      "District": "종로구"
+    },
+    "A1100029": {
+      "Hospital_ID": "A1100029",
+      "Hospital_Name": "서울적십자병원",
+      "Tel": "02-2002-8000",
+      "District": "종로구"
+    },
+    "A1100032": {
+      "Hospital_ID": "A1100032",
+      "Hospital_Name": "세란병원",
+      "Tel": "02-737-0181",
+      "District": "종로구"
+    },
+    "A1100052": {
+      "Hospital_ID": "A1100052",
+      "Hospital_Name": "국립중앙의료원",
+      "Tel": "02-2260-7114",
+      "District": "중구"
+    },
+    "A1100004": {
+      "Hospital_ID": "A1100004",
+      "Hospital_Name": "순천향대학교부속서울병원",
+      "Tel": "02-709-9114",
+      "District": "용산구"
+    },
+    "A1122381": {
+      "Hospital_ID": "A1122381",
+      "Hospital_Name": "재단법인베스티안재단베스티안서울병원",
+      "Tel": "02-3452-7575",
+      "District": "성동구"
+    },
+    "A1100013": {
+      "Hospital_ID": "A1100013",
+      "Hospital_Name": "한양대학교병원",
+      "Tel": "02-2290-8114",
+      "District": "성동구"
+    },
+    "A1100002": {
+      "Hospital_ID": "A1100002",
+      "Hospital_Name": "건국대학교병원",
+      "Tel": "1588-1533",
+      "District": "광진구"
+    },
+    "A1100051": {
+      "Hospital_ID": "A1100051",
+      "Hospital_Name": "혜민병원",
+      "Tel": "02-2049-9000",
+      "District": "광진구"
+    },
+    "A1100001": {
+      "Hospital_ID": "A1100001",
+      "Hospital_Name": "경희대학교병원",
+      "Tel": "02-958-8114",
+      "District": "동대문구"
+    },
+    "A1100021": {
+      "Hospital_ID": "A1100021",
+      "Hospital_Name": "삼육서울병원",
+      "Tel": "02-2244-0191",
+      "District": "동대문구"
+    },
+    "A1100050": {
+      "Hospital_ID": "A1100050",
+      "Hospital_Name": "서울성심병원",
+      "Tel": "02-966-1616",
+      "District": "동대문구"
+    },
+    "A1100022": {
+      "Hospital_ID": "A1100022",
+      "Hospital_Name": "서울특별시동부병원",
+      "Tel": "02-920-9114",
+      "District": "동대문구"
+    },
+    "A1100044": {
+      "Hospital_ID": "A1100044",
+      "Hospital_Name": "녹색병원",
+      "Tel": "02-490-2000",
+      "District": "중랑구"
+    },
+    "A1100035": {
+      "Hospital_ID": "A1100035",
+      "Hospital_Name": "서울특별시서울의료원",
+      "Tel": "02-2276-7000",
+      "District": "중랑구"
+    },
+    "A1100075": {
+      "Hospital_ID": "A1100075",
+      "Hospital_Name": "의료법인풍산의료재단동부제일병원",
+      "Tel": "02-437-5011",
+      "District": "중랑구"
+    },
+    "A1100008": {
+      "Hospital_ID": "A1100008",
+      "Hospital_Name": "학교법인 고려중앙학원 고려대학교의과대학부속병원(안암병원)",
+      "Tel": "1577-0083",
+      "District": "성북구"
+    },
+    "A1121842": {
+      "Hospital_ID": "A1121842",
+      "Hospital_Name": "강북으뜸병원",
+      "Tel": "02-986-0334",
+      "District": "강북구"
+    },
+    "A1100172": {
+      "Hospital_ID": "A1100172",
+      "Hospital_Name": "서울현대병원",
+      "Tel": "02-1588-6853",
+      "District": "강북구"
+    },
+    "A1100030": {
+      "Hospital_ID": "A1100030",
+      "Hospital_Name": "의료법인성화의료재단대한병원",
+      "Tel": "02-903-3232",
+      "District": "강북구"
+    },
+    "A1100020": {
+      "Hospital_ID": "A1100020",
+      "Hospital_Name": "의료법인한전의료재단 한일병원",
+      "Tel": "02-901-3114",
+      "District": "도봉구"
+    },
+    "A1100048": {
+      "Hospital_ID": "A1100048",
+      "Hospital_Name": "노원을지대학교병원",
+      "Tel": "02-970-8000",
+      "District": "노원구"
+    },
+    "A1100016": {
+      "Hospital_ID": "A1100016",
+      "Hospital_Name": "인제대학교상계백병원",
+      "Tel": "02-950-1114",
+      "District": "노원구"
+    },
+    "A1100027": {
+      "Hospital_ID": "A1100027",
+      "Hospital_Name": "한국원자력의학원원자력병원",
+      "Tel": "02-970-2114",
+      "District": "노원구"
+    },
+    "A1121013": {
+      "Hospital_ID": "A1121013",
+      "Hospital_Name": "가톨릭대학교은평성모병원",
+      "Tel": "02-1811-7755",
+      "District": "은평구"
+    },
+    "A1100152": {
+      "Hospital_ID": "A1100152",
+      "Hospital_Name": "은평연세병원",
+      "Tel": "02-388-8114",
+      "District": "은평구"
+    },
+    "A1100023": {
+      "Hospital_ID": "A1100023",
+      "Hospital_Name": "의료법인청구성심병원",
+      "Tel": "02-350-3300",
+      "District": "은평구"
+    },
+    "A1117070": {
+      "Hospital_ID": "A1117070",
+      "Hospital_Name": "최원호병원",
+      "Tel": "02-1588-3797",
+      "District": "은평구"
+    },
+    "A1100007": {
+      "Hospital_ID": "A1100007",
+      "Hospital_Name": "연세대학교의과대학세브란스병원",
+      "Tel": "02-2228-0114",
+      "District": "서대문구"
+    },
+    "A1100025": {
+      "Hospital_ID": "A1100025",
+      "Hospital_Name": "의료법인동신의료재단동신병원",
+      "Tel": "02-396-9161",
+      "District": "서대문구"
+    },
+    "A1100063": {
+      "Hospital_ID": "A1100063",
+      "Hospital_Name": "신촌연세병원",
+      "Tel": "02-337-7582",
+      "District": "마포구"
+    },
+    "A1100223": {
+      "Hospital_ID": "A1100223",
+      "Hospital_Name": "서울특별시서남병원",
+      "Tel": "1566-6688",
+      "District": "양천구"
+    },
+    "A1100005": {
+      "Hospital_ID": "A1100005",
+      "Hospital_Name": "이화여자대학교의과대학부속목동병원",
+      "Tel": "02-2650-5114",
+      "District": "양천구"
+    },
+    "A1100019": {
+      "Hospital_ID": "A1100019",
+      "Hospital_Name": "홍익병원",
+      "Tel": "02-2693-5555",
+      "District": "양천구"
+    },
+    "A1117285": {
+      "Hospital_ID": "A1117285",
+      "Hospital_Name": "강서케이병원",
+      "Tel": "02-1833-7530",
+      "District": "강서구"
+    },
+    "A1100046": {
+      "Hospital_ID": "A1100046",
+      "Hospital_Name": "미즈메디병원",
+      "Tel": "15882701",
+      "District": "강서구"
+    },
+    "A1100036": {
+      "Hospital_ID": "A1100036",
+      "Hospital_Name": "부민병원",
+      "Tel": "1577-7582",
+      "District": "강서구"
+    },
+    "A1100253": {
+      "Hospital_ID": "A1100253",
+      "Hospital_Name": "서울고든병원",
+      "Tel": "1670-0124",
+      "District": "강서구"
+    },
+    "A1100042": {
+      "Hospital_ID": "A1100042",
+      "Hospital_Name": "우리들병원",
+      "Tel": "02-2660-7500",
+      "District": "강서구"
+    },
+    "A1120796": {
+      "Hospital_ID": "A1120796",
+      "Hospital_Name": "이화여자대학교의과대학부속서울병원",
+      "Tel": "1522-7000",
+      "District": "강서구"
+    },
+    "A1100014": {
+      "Hospital_ID": "A1100014",
+      "Hospital_Name": "고려대학교의과대학부속구로병원",
+      "Tel": "02-2626-1114",
+      "District": "구로구"
+    },
+    "A1100026": {
+      "Hospital_ID": "A1100026",
+      "Hospital_Name": "구로성심병원",
+      "Tel": "02-2067-1500",
+      "District": "구로구"
+    },
+    "A1100049": {
+      "Hospital_ID": "A1100049",
+      "Hospital_Name": "희명병원",
+      "Tel": "02-804-0002",
+      "District": "금천구"
+    },
+    "A1100011": {
+      "Hospital_ID": "A1100011",
+      "Hospital_Name": "가톨릭대학교여의도성모병원",
+      "Tel": "02-1661-7575",
+      "District": "영등포구"
+    },
+    "A1100037": {
+      "Hospital_ID": "A1100037",
+      "Hospital_Name": "대림성모병원",
+      "Tel": "02-829-9000",
+      "District": "영등포구"
+    },
+    "A1100024": {
+      "Hospital_ID": "A1100024",
+      "Hospital_Name": "명지성모병원",
+      "Tel": "02-1899-1475",
+      "District": "영등포구"
+    },
+    "A1100054": {
+      "Hospital_ID": "A1100054",
+      "Hospital_Name": "성애의료재단성애병원",
+      "Tel": "02-840-7114",
+      "District": "영등포구"
+    },
+    "A1100045": {
+      "Hospital_ID": "A1100045",
+      "Hospital_Name": "씨엠병원",
+      "Tel": "02-2678-0001",
+      "District": "영등포구"
+    },
+    "A1100255": {
+      "Hospital_ID": "A1100255",
+      "Hospital_Name": "의료법인인봉의료재단영등포병원",
+      "Tel": "02-2635-2809",
+      "District": "영등포구"
+    },
+    "A1100163": {
+      "Hospital_ID": "A1100163",
+      "Hospital_Name": "한강수병원",
+      "Tel": "02-1800-7119",
+      "District": "영등포구"
+    },
+    "A1100055": {
+      "Hospital_ID": "A1100055",
+      "Hospital_Name": "한림대학교 강남성심병원",
+      "Tel": "02-829-5114",
+      "District": "영등포구"
+    },
+    "A1100038": {
+      "Hospital_ID": "A1100038",
+      "Hospital_Name": "한림대학교한강성심병원",
+      "Tel": "02-2639-5114",
+      "District": "영등포구"
+    },
+    "A1126226": {
+      "Hospital_ID": "A1126226",
+      "Hospital_Name": "낭만병원",
+      "Tel": "02-523-1119",
+      "District": "동작구"
+    },
+    "A1100040": {
+      "Hospital_ID": "A1100040",
+      "Hospital_Name": "서울특별시보라매병원",
+      "Tel": "02-870-2114",
+      "District": "동작구"
+    },
+    "A1100003": {
+      "Hospital_ID": "A1100003",
+      "Hospital_Name": "중앙대학교병원",
+      "Tel": "1800-1114",
+      "District": "동작구"
+    },
+    "A1100047": {
+      "Hospital_ID": "A1100047",
+      "Hospital_Name": "강남고려병원",
+      "Tel": "1661-8267",
+      "District": "관악구"
+    },
+    "A1100076": {
+      "Hospital_ID": "A1100076",
+      "Hospital_Name": "강남힐병원",
+      "Tel": "02-853-4600",
+      "District": "관악구"
+    },
+    "A1100148": {
+      "Hospital_ID": "A1100148",
+      "Hospital_Name": "사랑의병원",
+      "Tel": "02-880-0114",
+      "District": "관악구"
+    },
+    "A1100041": {
+      "Hospital_ID": "A1100041",
+      "Hospital_Name": "의료법인서울효천의료재단 에이치플러스양지병원",
+      "Tel": "02-1877-8875",
+      "District": "관악구"
+    },
+    "A1122033": {
+      "Hospital_ID": "A1122033",
+      "Hospital_Name": "기쁨병원",
+      "Tel": "02-570-1234",
+      "District": "서초구"
+    },
+    "A1120432": {
+      "Hospital_ID": "A1120432",
+      "Hospital_Name": "올바로병원",
+      "Tel": "02-587-8875",
+      "District": "서초구"
+    },
+    "A1100012": {
+      "Hospital_ID": "A1100012",
+      "Hospital_Name": "학교법인가톨릭학원가톨릭대학교서울성모병원",
+      "Tel": "0215881511",
+      "District": "서초구"
+    },
+    "A1100141": {
+      "Hospital_ID": "A1100141",
+      "Hospital_Name": "강남베드로병원",
+      "Tel": "1544-7522",
+      "District": "강남구"
+    },
+    "A1123234": {
+      "Hospital_ID": "A1123234",
+      "Hospital_Name": "더드림병원",
+      "Tel": "02-1661-1177",
+      "District": "강남구"
+    },
+    "A1100010": {
+      "Hospital_ID": "A1100010",
+      "Hospital_Name": "삼성서울병원",
+      "Tel": "02-3410-2114",
+      "District": "강남구"
+    },
+    "A1100015": {
+      "Hospital_ID": "A1100015",
+      "Hospital_Name": "연세대학교의과대학강남세브란스병원",
+      "Tel": "02-2019-3114",
+      "District": "강남구"
+    },
+    "A1100057": {
+      "Hospital_ID": "A1100057",
+      "Hospital_Name": "차의과학대학교강남차병원",
+      "Tel": "02-3468-3000",
+      "District": "강남구"
+    },
+    "A1125429": {
+      "Hospital_ID": "A1125429",
+      "Hospital_Name": "강철병원",
+      "Tel": "02-6287-5500",
+      "District": "송파구"
+    },
+    "A1100039": {
+      "Hospital_ID": "A1100039",
+      "Hospital_Name": "경찰병원",
+      "Tel": "02-3400-1114",
+      "District": "송파구"
+    },
+    "A1100009": {
+      "Hospital_ID": "A1100009",
+      "Hospital_Name": "재단법인아산사회복지재단 서울아산병원",
+      "Tel": "02-3010-3114",
+      "District": "송파구"
+    },
+    "A1100043": {
+      "Hospital_ID": "A1100043",
+      "Hospital_Name": "강동경희대학교병원",
+      "Tel": "02-440-7114",
+      "District": "강동구"
+    },
+    "A1100028": {
+      "Hospital_ID": "A1100028",
+      "Hospital_Name": "성심의료재단강동성심병원",
+      "Tel": "02-2224-2114",
+      "District": "강동구"
+    },
+    "A1100053": {
+      "Hospital_ID": "A1100053",
+      "Hospital_Name": "한국보훈복지의료공단 중앙보훈병원",
+      "Tel": "02-2225-1111",
+      "District": "강동구"
+    }
+  }
+}
