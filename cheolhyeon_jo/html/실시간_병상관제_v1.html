@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 응급의료 데이터 센터</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif; }
+        body {
+            background:linear-gradient(135deg,#f8fafc 0%,#edf2f7 50%,#f1f5f9 100%);
+            background-attachment:fixed; color:#0f172a; min-height:100vh; overflow-x:hidden;
+        }
+        .medical-card {
+            background:#fff; border:1px solid #e2e8f0; border-radius:1.25rem;
+            box-shadow:0 4px 16px -2px rgba(15,23,42,.05);
+            transition:all .25s cubic-bezier(.4,0,.2,1);
+        }
+        .medical-card:hover {
+            border-color:#059669;
+            box-shadow:0 10px 25px -4px rgba(5,150,105,.12),0 4px 10px -2px rgba(0,0,0,.04);
+            transform:translateY(-2px);
+        }
+        .emergency-card-high {
+            background:#fff; border:1.5px solid #f87171 !important;
+            box-shadow:0 4px 20px -2px rgba(220,38,38,.12);
+        }
+        .med-badge {
+            display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .65rem;
+            border-radius:9999px; font-size:.725rem; font-weight:800;
+        }
+        .badge-coral { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
+        .badge-amber { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+        .badge-emerald { background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
+        @keyframes sirenGlow { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.15)} }
+        .siren-active { animation:sirenGlow 1.2s infinite ease-in-out; }
+        ::-webkit-scrollbar { width:6px; height:6px; }
+        ::-webkit-scrollbar-track { background:#f1f5f9; }
+        ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+        ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="bg-red-600 text-white px-5 py-2 text-xs font-bold shadow-sm">
+        <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
+            <span><i class="fa-solid fa-tower-broadcast text-yellow-300 mr-2"></i>
+                실시간 응급실 가용 병상
+            </span>
+            <span class="hidden sm:inline text-red-100">갱신 주기 : 1H | 강북·마포는 등록 응급실 병상 별도 표시</span>
+        </div>
+    </div>
+
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-4 shadow-sm">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-emerald-600 text-white flex items-center justify-center text-xl shadow-md">
+                    <i class="fa-solid fa-bed-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg tracking-tight text-slate-900">
+                        <span class="text-red-600">SEOUL EMERGENCY HUB</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-bold mt-0.5">25개 자치구 응급실 가용병상 조회 및 위험도 모니터링</p>
+                </div>
+            </div>
+            <div id="realtime-updated-at" class="mt-0 text-[10px] leading-tight text-slate-500 font-bold text-right"></div>
+        </div>
+    </header>
+
+    <main class="max-w-[1600px] mx-auto p-6 md:p-8">
+        <section id="tab-realtime" class="space-y-6">
+            
+            
+            <!-- Counter Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="medical-card p-4 border-l-4 border-l-emerald-600">
+                    <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                        <i class="fa-solid fa-map-location-dot text-emerald-600"></i> 관제 대상 자치구
+                    </div>
+                    <div id="realtime-target-count" class="text-2xl font-black text-slate-900 mt-1">25개 구 전체</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-red-600 bg-red-50/30">
+                    <div class="flex items-center gap-2 text-red-600 text-xs font-extrabold">
+                        <i class="fa-solid fa-circle-exclamation siren-active"></i> 응급 포화/위험 (Critical)
+                    </div>
+                    <div id="realtime-critical-count" class="text-2xl font-black text-red-600 mt-1">조회 중</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-amber-500">
+                    <div class="flex items-center gap-2 text-amber-600 text-xs font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 응급 포화 주의 (Warning)
+                    </div>
+                    <div id="realtime-warning-count" class="text-2xl font-black text-amber-600 mt-1">조회 중</div>
+                </div>
+
+                <div class="medical-card p-4 border-l-4 border-l-teal-600">
+                    <div class="flex items-center gap-2 text-teal-700 text-xs font-bold">
+                        <i class="fa-solid fa-bed-pulse"></i> 서울시 총 가용 병상
+                    </div>
+                    <div id="realtime-total-beds" class="text-2xl font-black text-teal-800 mt-1">조회 중</div>
+                </div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="medical-card p-4 space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="realtime-search-input" onkeyup="filterRealtime()" placeholder="25개 자치구 또는 병원 이름 검색 (예: 강남구, 신촌세브란스, 서울대병원...)" class="w-full bg-slate-50 border border-slate-300 text-xs font-medium rounded-xl pl-9 pr-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                
+                <div class="flex flex-wrap gap-3">
+                    <select id="realtime-zone-filter" onchange="filterRealtime()" class="flex-1 bg-slate-50 border border-slate-300 text-xs text-slate-800 font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="all">전체 권역 보기 (25개 자치구)</option>
+                        <option value="도심권">도심권 (종로, 중구, 용산)</option>
+                        <option value="동북권">동북권 (성동, 광진, 동대문, 중랑, 성북, 강북, 도봉, 노원)</option>
+                        <option value="서북권">서북권 (은평, 서대문, 마포)</option>
+                        <option value="서남권">서남권 (양천, 강서, 구로, 금천, 영등포, 동작, 관악)</option>
+                        <option value="동남권">동남권 (서초, 강남, 송파, 강동)</option>
+                    </select>
+
+                    <select id="realtime-risk-filter" onchange="filterRealtime()" class="flex-1 bg-slate-50 border border-slate-300 text-xs text-slate-800 font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="all">전체 위험도 보기</option>
+                        <option value="high">🚨 긴급 포화/위험 (High Critical)</option>
+                        <option value="medium">⚠️ 포화 주의 (Medium Warning)</option>
+                        <option value="low">✅ 가용 원활 (Low Normal)</option>
+                        <option value="none">🏥 관내 응급실 없음 (인접 구 안내)</option>
+                    </select>
+                </div>
+            </div>           
+
+            <!-- Realtime Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="realtime-card-grid">
+                <!-- JS Dynamic Render -->
+            </div>
+        
+        </section>
+    </main>
+
+    <script>
+        const districtZones = {"강남구":"동남권","강동구":"동남권","강북구":"동북권","강서구":"서남권","관악구":"서남권","광진구":"동북권","구로구":"서남권","금천구":"서남권","노원구":"동북권","도봉구":"동북권","동대문구":"동북권","동작구":"서남권","마포구":"서북권","서대문구":"서북권","서초구":"동남권","성동구":"동북권","성북구":"동북권","송파구":"동남권","양천구":"서남권","영등포구":"서남권","용산구":"도심권","은평구":"서북권","종로구":"도심권","중구":"도심권","중랑구":"동북권"};
+        const districtNames = Object.keys(districtZones);
+        const fmt = n => Number(n ?? 0).toLocaleString('ko-KR', {maximumFractionDigits:1});
+
+        function formatApiDate(value) {
+            if (!value) return '-';
+            const s = String(value).replace(/\D/g, '');
+            if (s.length >= 14) {
+                return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)} ${s.slice(8,10)}:${s.slice(10,12)}:${s.slice(12,14)}`;
+            }
+            if (s.length >= 12) {
+                return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)} ${s.slice(8,10)}:${s.slice(10,12)}`;
+            }
+            return value;
+        }
+
+        // 병원 이름 등 외부 데이터를 화면에 넣기 전 특수문자 처리
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function cleanHospitalName(name) {
+            return String(name ?? '')
+                .replace(/학교법인/g, ' ')
+                .replace(/의료법인/g, ' ')
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean)
+                .join(' ');
+        }
+
+        function hospitalRisk(h) {
+            const b = Number(h.Available_Beds);
+            if (h.Available_Beds === null || !Number.isFinite(b)) return 'unknown';
+            if (b <= 0) return 'high';
+            if (b <= 3) return 'medium';
+            return 'low';
+        }
+
+        function districtRisk(result) {
+            const hospitals = result.hospitals || [];
+            if (result.data_type === 'static_er_beds') return 'static';
+            const known = hospitals.filter(h => hospitalRisk(h) !== 'unknown');
+            if (!known.length) return 'unknown';
+            if (known.some(h => Number(h.Available_Beds) <= 0)) return 'high';
+            if (known.some(h => Number(h.Available_Beds) <= 3)) return 'medium';
+            return 'low';
+        }
+
+        async function fetchRealtimeDistrict(d) {
+            try {
+                const r = await fetch(`/api/realtime-beds?district=${encodeURIComponent(d)}`);
+                if (!r.ok) throw new Error('API ' + r.status);
+                return await r.json();
+            } catch(e) {
+                return {district:d, hospitals:[], error:e.message};
+            }
+        }
+
+        // 25개 구를 한 번에 받고, 실패하면 구별로 다시 요청
+        async function fetchRealtimeAll() {
+            try {
+                const r = await fetch('/api/realtime-beds/all');
+                if (!r.ok) throw new Error('API ' + r.status);
+                const data = await r.json();
+                return {results: data.districts || [], updatedAt: data.snapshot_updated_at};
+            } catch(e) {
+                const results = await Promise.all(districtNames.map(fetchRealtimeDistrict));
+                return {results, updatedAt: results[0]?.snapshot_updated_at};
+            }
+        }
+
+        function updateRealtimeSummary(results) {
+            const allHospitals = results.flatMap(x => x.hospitals || []);
+            const knownHospitals = allHospitals.filter(h => hospitalRisk(h) !== 'unknown');
+            const totalBeds = knownHospitals.reduce((sum, h) => sum + Math.max(0, Number(h.Available_Beds)), 0);
+
+            document.getElementById('realtime-target-count').textContent = `${districtNames.length}개 구 전체`;
+            document.getElementById('realtime-critical-count').textContent = `${results.filter(x => districtRisk(x) === 'high').length}개 구`;
+            document.getElementById('realtime-warning-count').textContent = `${results.filter(x => districtRisk(x) === 'medium').length}개 구`;
+            document.getElementById('realtime-total-beds').textContent =
+                knownHospitals.length ? `${fmt(totalBeds)} 석` : '조회 데이터 없음';
+        }
+
+        let realtimeLoadedAt = 0;
+        async function loadRealtime(force=false) {
+            // 5분 안에 다시 열면 이미 받은 값 사용
+            if (!force && window.REALTIME_RESULTS && Date.now() - realtimeLoadedAt < 5 * 60 * 1000) {
+                filterRealtime();
+                return;
+            }
+            const grid = document.getElementById('realtime-card-grid');
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-slate-500 font-bold">실시간 병상 정보를 불러오는 중...</div>';
+
+            const {results, updatedAt} = await fetchRealtimeAll();
+            window.REALTIME_RESULTS = results;
+            realtimeLoadedAt = Date.now();
+            document.getElementById('realtime-updated-at').textContent =
+                updatedAt ? `병상 정보 기준 시각: ${updatedAt.replace('T', ' ')} · 출처: 국립중앙의료원 실시간 병상 API · 강북·마포는 등록 응급실 병상 별도 표시` : '병상 정보를 준비 중입니다. 잠시 후 다시 열어 주세요.';
+            updateRealtimeSummary(results);
+            filterRealtime();
+        }
+
+        function hospitalRow(h, showDistrict) {
+            const b = Number(h.Available_Beds);
+            const hRisk = hospitalRisk(h);
+            const bedClass =
+                hRisk === 'high' ? 'text-red-600' :
+                hRisk === 'medium' ? 'text-amber-600' :
+                hRisk === 'low' ? 'text-emerald-700' : 'text-slate-500';
+            const bedText = hRisk !== 'unknown' ? `${fmt(Math.max(0, b))} 석` : '확인불가';
+            const tag = showDistrict && h.From_District
+                ? `<span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mr-1">${esc(h.From_District)}</span>` : '';
+            const tel = h.Tel ? `<div class="text-xs text-slate-500 mt-1">☎ ${esc(h.Tel)}</div>` : '';
+            const staleTag = h.Is_Stale ? ' · 24시간 이상 미갱신' : '';
+
+            return `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="min-w-0 flex-1">
+                        <b class="block text-[17px] text-slate-900 leading-6 truncate" title="${esc(cleanHospitalName(h.Hospital_Name || h.Hospital_ID || '병원'))}">${tag}${esc(cleanHospitalName(h.Hospital_Name || h.Hospital_ID || '병원'))}</b>
+                        ${tel}
+                    </div>
+                    <div class="text-right shrink-0">
+                        <b class="text-sm ${bedClass} whitespace-nowrap">${bedText}</b>
+                        <div class="text-[11px] text-slate-500 mt-1">갱신: ${formatApiDate(h.Updated_At)}${staleTag}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function staticErHospitalRow(h) {
+            const beds = Number(h.ER_Beds);
+            const bedText = Number.isFinite(beds) ? `${fmt(beds)} 석` : '확인불가';
+            return `<div class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="min-w-0 flex-1">
+                        <b class="block text-[17px] text-slate-900 leading-6 truncate" title="${esc(cleanHospitalName(h.Hospital_Name || '병원'))}">${esc(cleanHospitalName(h.Hospital_Name || '병원'))}</b>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <b class="text-xs text-indigo-700 whitespace-nowrap">응급실 병상 ${bedText}</b>
+                        <div class="text-xs text-slate-500 mt-1 whitespace-nowrap">실시간 가용병상: 확인 불가 · API 미제공</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function closeNearbyMenus(exceptId = null) {
+            document.querySelectorAll('.nearby-submenu').forEach(menu => {
+                if (menu.id === exceptId) return;
+                menu.classList.add('hidden');
+                const btn = document.querySelector(`[aria-controls="${menu.id}"]`);
+                if (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                    btn.querySelector('.nearby-chevron')?.classList.remove('rotate-180');
+                }
+            });
+        }
+
+        function toggleNearbyMenu(menuId, event) {
+            event?.stopPropagation();
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
+            const button = document.querySelector(`[aria-controls="${menuId}"]`);
+            const willOpen = menu.classList.contains('hidden');
+            closeNearbyMenus(willOpen ? menuId : null);
+            menu.classList.toggle('hidden', !willOpen);
+            if (button) {
+                button.setAttribute('aria-expanded', String(willOpen));
+                button.querySelector('.nearby-chevron')?.classList.toggle('rotate-180', willOpen);
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.nearby-menu-wrap')) closeNearbyMenus();
+        });
+
+        function filterRealtime() {
+            const q = document.getElementById('realtime-search-input').value.toLowerCase().trim();
+            const zone = document.getElementById('realtime-zone-filter').value;
+            const risk = document.getElementById('realtime-risk-filter').value;
+
+            const results = (window.REALTIME_RESULTS || []).filter(x => {
+                const zoneMatch = zone === 'all' || districtZones[x.district] === zone;
+                const searchMatch =
+                    x.district.toLowerCase().includes(q) ||
+                    (x.hospitals || []).some(h => (h.Hospital_Name || '').toLowerCase().includes(q));
+                const riskMatch = risk === 'all' || districtRisk(x) === risk;
+                return zoneMatch && searchMatch && riskMatch;
+            });
+
+            const cards = results.map(x => {
+                const hs = [...(x.hospitals || [])].sort((a, b) => {
+                    const av = x.data_type === 'static_er_beds' ? Number(a.ER_Beds ?? -1) : Number(a.Available_Beds ?? -1);
+                    const bv = x.data_type === 'static_er_beds' ? Number(b.ER_Beds ?? -1) : Number(b.Available_Beds ?? -1);
+                    return bv - av;
+                });
+                const nearby = [...(x.nearby_hospitals || [])].sort((a, b) => Number(b.Available_Beds ?? -1) - Number(a.Available_Beds ?? -1));
+                const dRisk = districtRisk(x);
+                const badge =
+                    dRisk === 'high' ? '<span class="med-badge badge-coral">🚨 긴급 포화</span>' :
+                    dRisk === 'medium' ? '<span class="med-badge badge-amber">⚠️ 포화 주의</span>' :
+                    dRisk === 'low' ? '<span class="med-badge badge-emerald">✅ 가용 원활</span>' :
+                    dRisk === 'static' ? '<span class="med-badge bg-indigo-50 text-indigo-700 border border-indigo-200">ℹ️ 실시간 정보 미제공</span>' :
+                    '<span class="med-badge bg-slate-100 text-slate-500 border border-slate-200">정보 없음</span>';
+
+                let body = '';
+                if (x.error) {
+                    body += `<div class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">${esc(x.error)}</div>`;
+                }
+                if (x.data_type === 'static_er_beds') {
+                    body += `<div class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-xl p-3 font-bold">${esc(x.notice || '실시간 가용병상 정보가 제공되지 않습니다.')}</div>`;
+                    body += `<div class="space-y-2 h-[216px] overflow-y-auto pr-1">${hs.map(staticErHospitalRow).join('')}</div>`;
+                    if (nearby.length) {
+                        const menuId = `nearby-menu-${x.district}`;
+                        body += `<div class="relative pt-1 nearby-menu-wrap">
+                            <button type="button"
+                                onclick="toggleNearbyMenu('${menuId}', event)"
+                                class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors"
+                                aria-expanded="false" aria-controls="${menuId}">
+                                <span><i class="fa-solid fa-hospital-user mr-1.5 text-emerald-600"></i>${esc(x.nearby_notice || '인접 자치구 실시간 가용병상')}</span>
+                                <span class="nearby-chevron text-slate-400 transition-transform"><i class="fa-solid fa-chevron-down"></i></span>
+                            </button>
+                            <div id="${menuId}" class="nearby-submenu hidden absolute left-0 right-0 top-full mt-2 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 space-y-2 max-h-[250px] overflow-y-auto">
+                                <div class="flex items-center justify-between px-1 pb-1">
+                                    <span class="text-[11px] font-black text-slate-700">인접 자치구 실시간 병상</span>
+                                    <span class="text-[10px] text-slate-400">클릭하여 닫기</span>
+                                </div>
+                                ${nearby.map(h => hospitalRow(h, true)).join('')}
+                            </div>
+                        </div>`;
+                    }
+                } else if (hs.length) {
+                    body += `<div class="space-y-2 h-[288px] overflow-y-auto pr-1">${hs.map(h => hospitalRow(h, false)).join('')}</div>`;
+                } else if (nearby.length) {
+                    body += `<div class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-xl p-3 font-bold">${esc(x.notice || '인접 자치구 병원을 안내합니다.')}</div>`;
+                    body += nearby.map(h => hospitalRow(h, true)).join('');
+                } else if (!x.error) {
+                    body += `<div class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">현재 조회된 응급실 병상 정보가 없습니다.</div>`;
+                }
+
+                const cardHeightClass = 'h-[430px]';
+                return `<div class="medical-card p-5 space-y-3 ${cardHeightClass} overflow-visible ${dRisk === 'high' ? 'emergency-card-high' : ''}">
+                    <div class="flex justify-between items-center gap-3">
+                        <h3 class="font-black">${esc(x.district)}
+                            <span class="text-xs text-slate-500">(${districtZones[x.district] || ''})</span>
+                        </h3>
+                        ${badge}
+                    </div>
+                    ${body}
+                </div>`;
+            });
+
+            document.getElementById('realtime-card-grid').innerHTML =
+                cards.join('') ||
+                '<div class="col-span-full text-center py-12 text-slate-400 font-bold">현재 필터 조건과 일치하는 실시간 병상 데이터가 없습니다.</div>';
+        }
+
+        window.addEventListener('load', () => loadRealtime());
+    </script>
+</body>
+</html>

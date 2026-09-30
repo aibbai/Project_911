@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스마트 응급의료 데이터 센터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{box-sizing:border-box} body{font-family:'Pretendard',sans-serif}
+.menu-card{position:relative;overflow:hidden;min-height:430px;border-radius:28px;transition:.3s ease}
+.menu-card:hover{transform:translateY(-7px);box-shadow:0 28px 55px rgba(15,23,42,.18)}
+.menu-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.04),rgba(15,23,42,.88))}
+.art{position:absolute;inset:0;width:100%;height:100%}
+.menu-content{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:34px}
+.go{transition:.2s}.menu-card:hover .go{transform:translateX(5px)}
+.gradient-text-red {background: linear-gradient(135deg, #ff2222, #ad0000);-webkit-background-clip: text;background-clip: text;color: transparent;}
+.gradient-text-white {background: linear-gradient(135deg, #e4e3e3, #c9c8c8);-webkit-background-clip: text;background-clip: text;color: transparent;}
+</style>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-white">
+<div class="absolute inset-0 opacity-40" style="background:radial-gradient(circle at 20% 15%,#065f46 0,transparent 30%),radial-gradient(circle at 80% 80%,#1e40af 0,transparent 32%)"></div>
+<main class="relative min-h-screen flex items-center">
+  <div class="w-full max-w-6xl mx-auto px-6 py-14">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-emerald-300 text-sm font-extrabold mb-3">
+        <i class="fa-solid fa-star-of-life"></i> SEOUL EMERGENCY HUB
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight">
+        <span class="gradient-text-red">골든타임</span>
+        <span class="gradient-text-white">을 지키는</span>
+      </h1>
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight">
+        <span class="gradient-text-white">스마트 </span>
+        <span class="gradient-text-red">응급의료 </span>
+        <span class="gradient-text-white">데이터 센터</span>
+      </h1>
+      <p class="mt-4 text-slate-300 text-sm md:text-base">분석·예측 서비스와 실시간 응급실 병상 확인 서비스를 제공합니다.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-7">
+      <a href="/analysis" class="menu-card block bg-indigo-950 border border-indigo-400/20">
+        <svg class="art" viewBox="0 0 700 480" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#312e81"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs>
+          <rect width="700" height="480" fill="url(#a)"/>
+          <g opacity=".23" stroke="#c7d2fe"><path d="M0 90H700M0 180H700M0 270H700M0 360H700"/><path d="M100 0V480M220 0V480M340 0V480M460 0V480M580 0V480"/></g>
+          <path d="M45 350 C130 330,150 250,220 275 S320 150,390 205 S500 105,650 95" fill="none" stroke="#a5b4fc" stroke-width="12" stroke-linecap="round"/>
+          <g fill="#eef2ff"><circle cx="220" cy="275" r="10"/><circle cx="390" cy="205" r="10"/><circle cx="650" cy="95" r="10"/></g>
+        </svg>
+        <div class="menu-content">
+          <span class="inline-block mb-3 px-3 py-1 rounded-full bg-indigo-400/20 border border-indigo-300/30 text-indigo-100 text-xs font-bold">DATA & AI</span>
+          <h2 class="text-3xl font-black">데이터 분석 차트 · AI 예측 확인</h2>
+          <p class="mt-2 text-slate-200 text-sm">구급 수요 분석과 예측 모델 결과를 확인합니다.</p>
+          <div class="go mt-6 font-extrabold text-indigo-200">분석 페이지로 이동 <i class="fa-solid fa-arrow-right ml-2"></i></div>
+        </div>
+      </a>
+
+      <a href="/beds" class="menu-card block bg-emerald-950 border border-emerald-400/20">
+        <svg class="art" viewBox="0 0 700 480" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#065f46"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs>
+          <rect width="700" height="480" fill="url(#b)"/>
+          <circle cx="520" cy="145" r="118" fill="#10b981" opacity=".12"/>
+          <g transform="translate(145 90)" fill="none" stroke="#a7f3d0" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 230V90M20 170H390V230M80 170V125C80 100 100 82 125 82H205C230 82 250 100 250 125V170"/>
+            <path d="M20 230V270M390 230V270"/>
+            <circle cx="115" cy="125" r="25"/>
+            <path d="M315 38V108M280 73H350"/>
+          </g>
+        </svg>
+        <div class="menu-content">
+          <span class="inline-block mb-3 px-3 py-1 rounded-full bg-emerald-400/20 border border-emerald-300/30 text-emerald-100 text-xs font-bold">REAL-TIME</span>
+          <h2 class="text-3xl font-black">실시간 병상 관제</h2>
+          <p class="mt-2 text-slate-200 text-sm">서울 25개 자치구 응급실 가용병상을 실시간으로 확인합니다.</p>
+          <div class="go mt-6 font-extrabold text-emerald-200">병상 관제로 이동 <i class="fa-solid fa-arrow-right ml-2"></i></div>
+        </div>
+      </a>
+    </div>
+
+    <p class="mt-8 text-center text-xs text-slate-500">119 구급 수요 분석 · 응급의료 정보 통합 서비스</p>
+  </div>
+</main>
+</body>
+</html>

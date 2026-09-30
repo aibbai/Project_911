@@ -1,0 +1,840 @@
+{
+  "schema": 1,
+  "updated_at": "2026-09-30T14:45:05",
+  "source": "NMC 실시간 병상 API (23개 구) + 강북·마포 정적 응급실 병상",
+  "districts": {
+    "종로구": {
+      "district": "종로구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100017",
+          "Hospital_Name": "서울대학교병원",
+          "Tel": "02-1588-5700",
+          "Updated_At": "20260930144012",
+          "Ambulance_Available": "Y",
+          "District": "종로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -8,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100006",
+          "Hospital_Name": "강북삼성병원",
+          "Tel": "02-2001-2001",
+          "Updated_At": "20260930144027",
+          "Ambulance_Available": "Y",
+          "District": "종로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -1,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100029",
+          "Hospital_Name": "서울적십자병원",
+          "Tel": "02-2002-8000",
+          "Updated_At": "20260930143955",
+          "Ambulance_Available": "Y",
+          "District": "종로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 9,
+          "Beds_Raw": 9,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100032",
+          "Hospital_Name": "세란병원",
+          "Tel": "02-737-0181",
+          "Updated_At": "20260930143947",
+          "Ambulance_Available": "Y",
+          "District": "종로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 6,
+          "Beds_Raw": 6,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "중구": {
+      "district": "중구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100052",
+          "Hospital_Name": "국립중앙의료원",
+          "Tel": "02-2260-7114",
+          "Updated_At": "20260930144005",
+          "Ambulance_Available": "Y",
+          "District": "중구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "용산구": {
+      "district": "용산구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100004",
+          "Hospital_Name": "순천향대학교부속서울병원",
+          "Tel": "02-709-9114",
+          "Updated_At": "20260930143923",
+          "Ambulance_Available": "Y",
+          "District": "용산구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 12,
+          "Beds_Raw": 12,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "성동구": {
+      "district": "성동구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100013",
+          "Hospital_Name": "한양대학교병원",
+          "Tel": "02-2290-8114",
+          "Updated_At": "20260930143832",
+          "Ambulance_Available": "Y",
+          "District": "성동구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "광진구": {
+      "district": "광진구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100002",
+          "Hospital_Name": "건국대학교병원",
+          "Tel": "1588-1533",
+          "Updated_At": "20260930143751",
+          "Ambulance_Available": "Y",
+          "District": "광진구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 2,
+          "Beds_Raw": 2,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100051",
+          "Hospital_Name": "혜민병원",
+          "Tel": "02-2049-9000",
+          "Updated_At": "20260930143551",
+          "Ambulance_Available": "Y",
+          "District": "광진구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 6,
+          "Beds_Raw": 6,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "동대문구": {
+      "district": "동대문구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100001",
+          "Hospital_Name": "경희대학교병원",
+          "Tel": "02-958-8114",
+          "Updated_At": "20260930143925",
+          "Ambulance_Available": "Y",
+          "District": "동대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 12,
+          "Beds_Raw": 12,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100021",
+          "Hospital_Name": "삼육서울병원",
+          "Tel": "02-2244-0191",
+          "Updated_At": "20260930143709",
+          "Ambulance_Available": "Y",
+          "District": "동대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 11,
+          "Beds_Raw": 11,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100022",
+          "Hospital_Name": "서울특별시동부병원",
+          "Tel": "02-920-9114",
+          "Updated_At": "20260930144020",
+          "Ambulance_Available": "Y",
+          "District": "동대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100050",
+          "Hospital_Name": "서울성심병원",
+          "Tel": "02-966-1616",
+          "Updated_At": "20260930143744",
+          "Ambulance_Available": "Y",
+          "District": "동대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 17,
+          "Beds_Raw": 17,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "중랑구": {
+      "district": "중랑구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100035",
+          "Hospital_Name": "서울특별시서울의료원",
+          "Tel": "02-2276-7000",
+          "Updated_At": "20260930144001",
+          "Ambulance_Available": "Y",
+          "District": "중랑구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 3,
+          "Beds_Raw": 3,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100075",
+          "Hospital_Name": "의료법인풍산의료재단동부제일병원",
+          "Tel": "02-437-5011",
+          "Updated_At": "20260930143525",
+          "Ambulance_Available": "Y",
+          "District": "중랑구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 5,
+          "Beds_Raw": 5,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100044",
+          "Hospital_Name": "녹색병원",
+          "Tel": "02-490-2000",
+          "Updated_At": "20260930144008",
+          "Ambulance_Available": "Y",
+          "District": "중랑구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 5,
+          "Beds_Raw": 5,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "성북구": {
+      "district": "성북구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100008",
+          "Hospital_Name": "학교법인 고려중앙학원 고려대학교의과대학부속병원(안암병원)",
+          "Tel": "1577-0083",
+          "Updated_At": "20260930143158",
+          "Ambulance_Available": "Y",
+          "District": "성북구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 10,
+          "Beds_Raw": 10,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "도봉구": {
+      "district": "도봉구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100020",
+          "Hospital_Name": "의료법인한전의료재단 한일병원",
+          "Tel": "02-901-3114",
+          "Updated_At": "20260930144004",
+          "Ambulance_Available": "Y",
+          "District": "도봉구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 12,
+          "Beds_Raw": 12,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "노원구": {
+      "district": "노원구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100016",
+          "Hospital_Name": "인제대학교상계백병원",
+          "Tel": "02-950-1114",
+          "Updated_At": "20260930143744",
+          "Ambulance_Available": "Y",
+          "District": "노원구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 4,
+          "Beds_Raw": 4,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100048",
+          "Hospital_Name": "노원을지대학교병원",
+          "Tel": "02-970-8000",
+          "Updated_At": "20260930143602",
+          "Ambulance_Available": "Y",
+          "District": "노원구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 5,
+          "Beds_Raw": 5,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100027",
+          "Hospital_Name": "한국원자력의학원원자력병원",
+          "Tel": "02-970-2114",
+          "Updated_At": "20260930143732",
+          "Ambulance_Available": "Y",
+          "District": "노원구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 6,
+          "Beds_Raw": 6,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "은평구": {
+      "district": "은평구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1121013",
+          "Hospital_Name": "가톨릭대학교은평성모병원",
+          "Tel": "02-1811-7755",
+          "Updated_At": "20260930144013",
+          "Ambulance_Available": "Y",
+          "District": "은평구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -5,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100023",
+          "Hospital_Name": "의료법인청구성심병원",
+          "Tel": "02-350-3300",
+          "Updated_At": "20260930143839",
+          "Ambulance_Available": "Y",
+          "District": "은평구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "서대문구": {
+      "district": "서대문구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100007",
+          "Hospital_Name": "연세대학교의과대학세브란스병원",
+          "Tel": "02-2228-0114",
+          "Updated_At": "20260930143830",
+          "Ambulance_Available": "Y",
+          "District": "서대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -7,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100025",
+          "Hospital_Name": "의료법인동신의료재단동신병원",
+          "Tel": "02-396-9161",
+          "Updated_At": "20260930143846",
+          "Ambulance_Available": "Y",
+          "District": "서대문구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "양천구": {
+      "district": "양천구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100005",
+          "Hospital_Name": "이화여자대학교의과대학부속목동병원",
+          "Tel": "02-2650-5114",
+          "Updated_At": "20260930143552",
+          "Ambulance_Available": "Y",
+          "District": "양천구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 2,
+          "Beds_Raw": 2,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100019",
+          "Hospital_Name": "홍익병원",
+          "Tel": "02-2693-5555",
+          "Updated_At": "20260930143906",
+          "Ambulance_Available": "Y",
+          "District": "양천구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 6,
+          "Beds_Raw": 6,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100223",
+          "Hospital_Name": "서울특별시서남병원",
+          "Tel": "1566-6688",
+          "Updated_At": "20260930144000",
+          "Ambulance_Available": "Y",
+          "District": "양천구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 16,
+          "Beds_Raw": 16,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "강서구": {
+      "district": "강서구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1120796",
+          "Hospital_Name": "이화여자대학교의과대학부속서울병원",
+          "Tel": "1522-7000",
+          "Updated_At": "20260930143600",
+          "Ambulance_Available": "Y",
+          "District": "강서구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -5,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100036",
+          "Hospital_Name": "부민병원",
+          "Tel": "1577-7582",
+          "Updated_At": "20260930144029",
+          "Ambulance_Available": "Y",
+          "District": "강서구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "구로구": {
+      "district": "구로구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100014",
+          "Hospital_Name": "고려대학교의과대학부속구로병원",
+          "Tel": "02-2626-1114",
+          "Updated_At": "20260930143517",
+          "Ambulance_Available": "Y",
+          "District": "구로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": 0,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100026",
+          "Hospital_Name": "구로성심병원",
+          "Tel": "02-2067-1500",
+          "Updated_At": "20260930143844",
+          "Ambulance_Available": "Y",
+          "District": "구로구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 4,
+          "Beds_Raw": 4,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "금천구": {
+      "district": "금천구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100049",
+          "Hospital_Name": "희명병원",
+          "Tel": "02-804-0002",
+          "Updated_At": "20260930143952",
+          "Ambulance_Available": "Y",
+          "District": "금천구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 10,
+          "Beds_Raw": 10,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "영등포구": {
+      "district": "영등포구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100011",
+          "Hospital_Name": "가톨릭대학교여의도성모병원",
+          "Tel": "02-1661-7575",
+          "Updated_At": "20260930144013",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": 0,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100055",
+          "Hospital_Name": "한림대학교 강남성심병원",
+          "Tel": "02-829-5114",
+          "Updated_At": "20260930143607",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 16,
+          "Beds_Raw": 16,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100054",
+          "Hospital_Name": "성애의료재단성애병원",
+          "Tel": "02-840-7114",
+          "Updated_At": "20260930143857",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 11,
+          "Beds_Raw": 11,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100024",
+          "Hospital_Name": "명지성모병원",
+          "Tel": "02-1899-1475",
+          "Updated_At": "20260930144211",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 7,
+          "Beds_Raw": 7,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100037",
+          "Hospital_Name": "대림성모병원",
+          "Tel": "02-829-9000",
+          "Updated_At": "20260930143551",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 7,
+          "Beds_Raw": 7,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100045",
+          "Hospital_Name": "씨엠병원",
+          "Tel": "02-2678-0001",
+          "Updated_At": "20260930143000",
+          "Ambulance_Available": "Y",
+          "District": "영등포구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "동작구": {
+      "district": "동작구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100040",
+          "Hospital_Name": "서울특별시보라매병원",
+          "Tel": "02-870-2114",
+          "Updated_At": "20260930144000",
+          "Ambulance_Available": "Y",
+          "District": "동작구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 13,
+          "Beds_Raw": 13,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100003",
+          "Hospital_Name": "중앙대학교병원",
+          "Tel": "1800-1114",
+          "Updated_At": "20260930144012",
+          "Ambulance_Available": "Y",
+          "District": "동작구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 4,
+          "Beds_Raw": 4,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "관악구": {
+      "district": "관악구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100041",
+          "Hospital_Name": "의료법인서울효천의료재단 에이치플러스양지병원",
+          "Tel": "02-1877-8875",
+          "Updated_At": "20260930144010",
+          "Ambulance_Available": "Y",
+          "District": "관악구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 10,
+          "Beds_Raw": 10,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "서초구": {
+      "district": "서초구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100012",
+          "Hospital_Name": "학교법인가톨릭학원가톨릭대학교서울성모병원",
+          "Tel": "0215881511",
+          "Updated_At": "20260930144012",
+          "Ambulance_Available": "Y",
+          "District": "서초구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -13,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1122033",
+          "Hospital_Name": "기쁨병원",
+          "Tel": "02-570-1234",
+          "Updated_At": "20260930143948",
+          "Ambulance_Available": "Y",
+          "District": "서초구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 3,
+          "Beds_Raw": 3,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "강남구": {
+      "district": "강남구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100015",
+          "Hospital_Name": "연세대학교의과대학강남세브란스병원",
+          "Tel": "02-2019-3114",
+          "Updated_At": "20260930143639",
+          "Ambulance_Available": "Y",
+          "District": "강남구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 1,
+          "Beds_Raw": 1,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100010",
+          "Hospital_Name": "삼성서울병원",
+          "Tel": "02-3410-2114",
+          "Updated_At": "20260930143713",
+          "Ambulance_Available": "Y",
+          "District": "강남구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -35,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "송파구": {
+      "district": "송파구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100009",
+          "Hospital_Name": "재단법인아산사회복지재단 서울아산병원",
+          "Tel": "02-3010-3114",
+          "Updated_At": "20260930143715",
+          "Ambulance_Available": "Y",
+          "District": "송파구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 0,
+          "Beds_Raw": -3,
+          "Is_Overcrowded": true,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "강동구": {
+      "district": "강동구",
+      "hospitals": [
+        {
+          "Hospital_ID": "A1100043",
+          "Hospital_Name": "강동경희대학교병원",
+          "Tel": "02-440-7114",
+          "Updated_At": "20260930144019",
+          "Ambulance_Available": "Y",
+          "District": "강동구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 3,
+          "Beds_Raw": 3,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100028",
+          "Hospital_Name": "성심의료재단강동성심병원",
+          "Tel": "02-2224-2114",
+          "Updated_At": "20260930144005",
+          "Ambulance_Available": "Y",
+          "District": "강동구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 6,
+          "Beds_Raw": 6,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        },
+        {
+          "Hospital_ID": "A1100053",
+          "Hospital_Name": "한국보훈복지의료공단 중앙보훈병원",
+          "Tel": "02-2225-1111",
+          "Updated_At": "20260930143616",
+          "Ambulance_Available": "Y",
+          "District": "강동구",
+          "data_source": "existing_realtime_API",
+          "Available_Beds": 8,
+          "Beds_Raw": 8,
+          "Is_Overcrowded": false,
+          "Is_Stale": false,
+          "Beds_Unknown": false
+        }
+      ]
+    },
+    "마포구": {
+      "district": "마포구",
+      "hospitals": []
+    },
+    "강북구": {
+      "district": "강북구",
+      "hospitals": []
+    }
+  },
+  "errors": [],
+  "stats": {
+    "realtime_district_count": 23,
+    "static_er_districts": [
+      "강북구",
+      "마포구"
+    ],
+    "empty_realtime_districts": [],
+    "max_district_count": 6
+  }
+}
