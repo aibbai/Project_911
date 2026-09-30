@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서울시 응급의료 관제 시스템 - Long Scroll Edition</title>
+    <!-- Pretendard Font & FontAwesome Icons -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS & Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0b0f19',
+                            card: '#151c2c',
+                            border: '#232d42',
+                            neonBlue: '#38bdf8',
+                            neonMint: '#34d399',
+                            neonRose: '#fb7185',
+                            neonAmber: '#fbbf24'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 280px;
+        }
+
+        .dark-card {
+            background-color: #151c2c;
+            border: 1px solid #232d42;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark-card:hover {
+            border-color: #38bdf8;
+            transform: translateY(-3px);
+        }
+
+        /* Glass Floating Nav */
+        .floating-nav {
+            background: rgba(21, 28, 44, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- Sticky Floating Navigation Header -->
+    <header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-5xl floating-nav rounded-2xl px-6 py-3 flex justify-between items-center shadow-2xl">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center font-black">
+                <i class="fa-solid fa-truck-medical"></i>
+            </div>
+            <span class="font-extrabold text-sm tracking-wider text-white">SEOUL EMERGENCY CONTROL</span>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-400">
+            <a href="#section-hero" class="hover:text-sky-400 transition">개요</a>
+            <a href="#section-analytics" class="hover:text-sky-400 transition">시계열 분석</a>
+            <a href="#section-forecast" class="hover:text-sky-400 transition">AI 예측 현황</a>
+            <a href="#section-realtime" class="hover:text-sky-400 transition">실시간 병상</a>
+        </nav>
+
+        <a href="#section-analytics" class="text-xs bg-sky-500 hover:bg-sky-400 text-slate-950 font-black px-4 py-2 rounded-xl transition">
+            관제 시작 <i class="fa-solid fa-arrow-down ml-1"></i>
+        </a>
+    </header>
+
+    <!-- 1. HERO SECTION -->
+    <section id="section-hero" class="min-h-screen flex flex-col justify-center items-center pt-24 pb-12 px-6 text-center border-b border-slate-800">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-bold mb-6">
+            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+            SEOUL EMERGENCY HUB V9 LIVE
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight max-w-4xl leading-tight">
+            서울시 응급의료 관제 & <br>
+            <span class="bg-gradient-to-r from-sky-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent">AI 이송 수요 예측 대시보드</span>
+        </h1>
+
+        <p class="mt-4 text-slate-400 text-sm md:text-base max-w-2xl">
+            스크롤을 아래로 내려 서울시 25개 자치구의 실제 이송 실적, 인구 변수 상관관계, 2026년 AI 예측 데이터를 순차적으로 확인하세요.
+        </p>
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl w-full mt-12">
+            <div class="dark-card p-5 text-left">
+                <div class="text-xs text-slate-400 font-bold mb-1">최다 이송 지역구</div>
+                <div class="text-2xl font-black text-white">강남구</div>
+                <div class="text-[11px] text-sky-400 mt-2 font-medium">월평균 1,401건</div>
+            </div>
+            <div class="dark-card p-5 text-left">
+                <div class="text-xs text-slate-400 font-bold mb-1">인구대비 최고 이송률</div>
+                <div class="text-2xl font-black text-emerald-400">강북구</div>
+                <div class="text-[11px] text-emerald-400/80 mt-2 font-medium">1만명당 34.3건</div>
+            </div>
+            <div class="dark-card p-5 text-left">
+                <div class="text-xs text-slate-400 font-bold mb-1">주 요인 변수</div>
+                <div class="text-2xl font-black text-amber-400">야간 인구</div>
+                <div class="text-[11px] text-amber-400/80 mt-2 font-medium">상관계수 r = 0.695</div>
+            </div>
+            <div class="dark-card p-5 text-left">
+                <div class="text-xs text-slate-400 font-bold mb-1">AI 모델 정밀도</div>
+                <div class="text-2xl font-black text-rose-400">93.65%</div>
+                <div class="text-[11px] text-rose-400/80 mt-2 font-medium">오차율 6.35% 수준</div>
+            </div>
+        </div>
+
+        <div class="mt-16 text-slate-500 animate-bounce">
+            <i class="fa-solid fa-chevron-down text-xl"></i>
+        </div>
+    </section>
+
+    <!-- 2. ANALYTICS SECTION (시계열 심층 분석) -->
+    <section id="section-analytics" class="py-20 px-6 max-w-7xl mx-auto space-y-12 border-b border-slate-800">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+                <span class="text-xs font-bold text-sky-400 uppercase tracking-widest">Section 01</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-white mt-1">자치구별 시계열 & 상관성 분석</h2>
+            </div>
+
+            <!-- 자치구 선택 컨트롤러 -->
+            <div class="dark-card p-2 flex items-center gap-3">
+                <label for="analysis-district-select" class="text-xs font-bold text-slate-300 pl-3">관제 자치구:</label>
+                <select id="analysis-district-select" onchange="onAnalysisDistrictChange()" class="bg-slate-900 text-sky-400 border border-slate-700 text-xs font-bold rounded-xl px-4 py-2 focus:outline-none focus:border-sky-500">
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Chart 1 -->
+            <div class="dark-card p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-200">1. 인구 1만명당 이송률 상위 구</h3>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">실적 통계</span>
+                </div>
+                <div class="chart-container"><canvas id="chart1"></canvas></div>
+            </div>
+
+            <!-- Chart 2 -->
+            <div class="dark-card p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-200">2. 생활/이동인구 상관성 (Pearson r)</h3>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">인구 변수</span>
+                </div>
+                <div class="chart-container"><canvas id="chart2"></canvas></div>
+            </div>
+
+            <!-- Chart 3 -->
+            <div class="dark-card p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-200">3. <span id="chart3-title-district" class="text-sky-400">강남구</span> 2025 실제 vs 예측 검증</h3>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">성능 테스트</span>
+                </div>
+                <div class="chart-container"><canvas id="chart3"></canvas></div>
+            </div>
+
+            <!-- Chart 4 -->
+            <div class="dark-card p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-200">4. <span id="chart4-title-district" class="text-amber-400">강남구</span> 2026 월별 이송 수요 예측</h3>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">GradientBoosting</span>
+                </div>
+                <div class="chart-container"><canvas id="chart4"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. FORECAST SECTION (AI 수요 예측) -->
+    <section id="section-forecast" class="py-20 px-6 max-w-7xl mx-auto space-y-8 border-b border-slate-800">
+        <div>
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Section 02</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white mt-1">2026 AI 월간 수요 예측 카드</h2>
+            <p class="text-xs text-slate-400 mt-1">GradientBoosting 알고리즘으로 산출된 자치구별 예측 건수입니다.</p>
+        </div>
+
+        <div id="predict-card-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- 4. REALTIME SECTION (실시간 병상) -->
+    <section id="section-realtime" class="py-20 px-6 max-w-7xl mx-auto space-y-8">
+        <div>
+            <span class="text-xs font-bold text-rose-400 uppercase tracking-widest">Section 03</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white mt-1">실시간 응급실 병상 현황</h2>
+            <p class="text-xs text-slate-400 mt-1">서울시 주요 응급의료센터 가용 병상 데이터입니다.</p>
+        </div>
+
+        <div id="realtime-card-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <footer class="border-t border-slate-800 py-8 text-center text-xs text-slate-500">
+        © 2026 SEOUL EMERGENCY HUB - LONG SCROLL DASHBOARD EDITION
+    </footer>
+
+    <!-- JavaScript Source Code -->
+    <script>
+        const CSV_DATA = {"forecast":[{"예측월":"2026-01","지역구명":"강남구","예측_이송건수":1323,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"강동구","예측_이송건수":1125,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"강북구","예측_이송건수":1033,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"강서구","예측_이송건수":1227,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"관악구","예측_이송건수":1077,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"광진구","예측_이송건수":770,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"구로구","예측_이송건수":1201,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"금천구","예측_이송건수":612,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"노원구","예측_이송건수":1188,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"도봉구","예측_이송건수":792,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"동대문구","예측_이송건수":1002,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"동작구","예측_이송건수":740,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"마포구","예측_이송건수":1118,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"서대문구","예측_이송건수":802,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"서초구","예측_이송건수":1077,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"성동구","예측_이송건수":604,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"성북구","예측_이송건수":1001,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"송파구","예측_이송건수":1264,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"양천구","예측_이송건수":1138,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"영등포구","예측_이송건수":1058,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"용산구","예측_이송건수":588,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"은평구","예측_이송건수":1027,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"종로구","예측_이송건수":643,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"중구","예측_이송건수":712,"사용모델":"GradientBoosting"},{"예측월":"2026-01","지역구명":"중랑구","예측_이송건수":975,"사용모델":"GradientBoosting"}],"test":[{"날짜":"2025-07","지역구명":"강남구","실제_이송건수":1463.0,"예측_이송건수":1309.0,"오차율(%)":10.53},{"날짜":"2025-08","지역구명":"강남구","실제_이송건수":1256.0,"예측_이송건수":1288.0,"오차율(%)":2.55},{"날짜":"2025-09","지역구명":"강남구","실제_이송건수":1313.0,"예측_이송건수":1225.0,"오차율(%)":6.7},{"날짜":"2025-10","지역구명":"강남구","실제_이송건수":1275.0,"예측_이송건수":1232.0,"오차율(%)":3.37},{"날짜":"2025-11","지역구명":"강남구","실제_이송건수":1289.0,"예측_이송건수":1227.0,"오차율(%)":4.81},{"날짜":"2025-12","지역구명":"강남구","실제_이송건수":1441.0,"예측_이송건수":1294.0,"오차율(%)":10.2}],"rate":[{"지역구명":"송파구","월평균_이송건수":1333.677,"월평균_인구":757340.965,"인구1만명당_이송률":17.61},{"지역구명":"강남구","월평균_이송건수":1401.0,"월평균_인구":739237.592,"인구1만명당_이송률":18.952},{"지역구명":"관악구","월평균_이송건수":1234.022,"월평균_인구":524306.937,"인구1만명당_이송률":23.536},{"지역구명":"마포구","월평균_이송건수":1238.516,"월평균_인구":467127.075,"인구1만명당_이송률":26.513},{"지역구명":"강북구","월평균_이송건수":1053.0,"월평균_인구":307007.347,"인구1만명당_이송률":34.299}],"corr":[{"Unnamed: 0":"night_pop","전체_피어슨":0.695},{"Unnamed: 0":"동일자치구행정동간이동인구수","전체_피어슨":0.659},{"Unnamed: 0":"내국인생활인구수","전체_피어슨":0.659},{"Unnamed: 0":"total_pop","전체_피어슨":0.649},{"Unnamed: 0":"day_pop","전체_피어슨":0.549}]};
+
+        let chartInstances = {};
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDistrictSelect();
+            initCharts('강남구');
+            renderPredictCards();
+            renderRealtimeCards();
+        });
+
+        function initDistrictSelect() {
+            const select = document.getElementById('analysis-district-select');
+            const districts = ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"];
+            districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.innerText = d;
+                select.appendChild(opt);
+            });
+        }
+
+        function onAnalysisDistrictChange() {
+            const selectedDistrict = document.getElementById('analysis-district-select').value;
+            document.getElementById('chart3-title-district').innerText = selectedDistrict;
+            document.getElementById('chart4-title-district').innerText = selectedDistrict;
+            initCharts(selectedDistrict);
+        }
+
+        function initCharts(districtName) {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = '#232d42';
+
+            // Chart 1
+            if (chartInstances.chart1) chartInstances.chart1.destroy();
+            chartInstances.chart1 = new Chart(document.getElementById('chart1'), {
+                type: 'bar',
+                data: {
+                    labels: CSV_DATA.rate.map(item => item.지역구명),
+                    datasets: [{
+                        label: '이송률',
+                        data: CSV_DATA.rate.map(item => item.인구1만명당_이송률),
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Chart 2
+            if (chartInstances.chart2) chartInstances.chart2.destroy();
+            chartInstances.chart2 = new Chart(document.getElementById('chart2'), {
+                type: 'bar',
+                data: {
+                    labels: CSV_DATA.corr.map(item => item["Unnamed: 0"]),
+                    datasets: [{
+                        label: '피어슨 상관계수',
+                        data: CSV_DATA.corr.map(item => item.전체_피어슨),
+                        backgroundColor: '#34d399',
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+            });
+
+            // Chart 3
+            if (chartInstances.chart3) chartInstances.chart3.destroy();
+            chartInstances.chart3 = new Chart(document.getElementById('chart3'), {
+                type: 'line',
+                data: {
+                    labels: CSV_DATA.test.map(item => item.날짜),
+                    datasets: [
+                        { label: '실제 이송건수', data: CSV_DATA.test.map(item => item.실제_이송건수), borderColor: '#fb7185', tension: 0.3 },
+                        { label: '예측 이송건수', data: CSV_DATA.test.map(item => item.예측_이송건수), borderColor: '#38bdf8', borderDash: [4, 4], tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Chart 4
+            if (chartInstances.chart4) chartInstances.chart4.destroy();
+            const forecastData = CSV_DATA.forecast.filter(item => item.지역구명 === districtName);
+            
+            let chart4Labels = forecastData.length > 0 ? forecastData.map(item => item.예측월) : ['2026-01'];
+            let chart4Values = forecastData.length > 0 ? forecastData.map(item => item.예측_이송건수) : [0];
+
+            chartInstances.chart4 = new Chart(document.getElementById('chart4'), {
+                type: 'bar',
+                data: {
+                    labels: chart4Labels,
+                    datasets: [{
+                        label: `${districtName} 예측 건수`,
+                        data: chart4Values,
+                        backgroundColor: '#fbbf24',
+                        borderRadius: 6,
+                        barThickness: 45
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        function renderPredictCards() {
+            const container = document.getElementById('predict-card-grid');
+            container.innerHTML = '';
+            CSV_DATA.forecast.slice(0, 6).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'dark-card p-6 space-y-3 border-l-4 border-l-emerald-400';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-base font-extrabold text-white">${item.지역구명}</span>
+                        <span class="text-[10px] px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${item.예측월}</span>
+                    </div>
+                    <div class="text-3xl font-black text-emerald-400">${item.예측_이송건수.toLocaleString()} <span class="text-xs text-slate-400 font-normal">건</span></div>
+                    <div class="text-xs text-slate-500">알고리즘: ${item.사용모델}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRealtimeCards() {
+            const container = document.getElementById('realtime-card-grid');
+            container.innerHTML = '';
+            const sampleHospitals = [
+                { name: '강남세브란스병원', district: '강남구', beds: 3, status: 'high' },
+                { name: '서울대학교병원', district: '종로구', beds: 1, status: 'high' },
+                { name: '서울아산병원', district: '송파구', beds: 8, status: 'medium' }
+            ];
+
+            sampleHospitals.forEach(h => {
+                const isHigh = h.status === 'high';
+                const card = document.createElement('div');
+                card.className = `dark-card p-6 space-y-3 ${isHigh ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-sky-400'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-base font-bold text-white">${h.name}</span>
+                        <span class="text-xs font-bold ${isHigh ? 'text-rose-400' : 'text-sky-400'}">${h.beds} 병상 가능</span>
+                    </div>
+                    <div class="text-xs text-slate-400"><i class="fa-solid fa-location-dot"></i> ${h.district}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
