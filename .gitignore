@@ -2,4 +2,4 @@
 *.xlsx 
 .env
 etc/
-data/*.csv
+data/*.csv"cheolhyeon_jo/data/*.csv" 
