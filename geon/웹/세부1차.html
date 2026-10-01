@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 응급의료 데이터 센터 - AI 응급 이송 수요 예측</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 36px 28px;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        /* Header (사이즈 확대 및 전달력 강화) */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-title h1 {
+            font-size: 34px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title h1 span.badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-purple));
+            color: white;
+            font-weight: 700;
+            letter-spacing: 0;
+        }
+
+        .header-title p {
+            color: #d1d5db;
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .system-info {
+            font-size: 13px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        /* Section Title Divider */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .section-header .tag {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            backdrop-filter: blur(12px);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-group {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        select.custom-select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .up { color: #f87171; }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 340px;
+            width: 100%;
+        }
+
+        /* District Rank Table */
+        .district-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .district-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .district-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rank-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .rank-1 { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .rank-2 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .rank-3 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+
+        /* Secondary Grid */
+        .sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sub-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* AI Model Section */
+        .ai-model-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .model-header-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .accuracy-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accuracy-card .accuracy-val {
+            font-size: 32px;
+            font-weight: 800;
+            color: #10b981;
+            margin-top: 4px;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .model-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .model-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .model-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+            color: #d1d5db;
+        }
+
+        .model-card ul li {
+            position: relative;
+            padding-left: 14px;
+            line-height: 1.5;
+        }
+
+        .model-card ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-blue);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-sub);
+            padding: 20px 0;
+            border-top: 1px solid var(--card-border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header (키운 타이틀 및 또렷한 서브 문구) -->
+    <header>
+        <div class="header-title">
+            <h1>
+                AI 응급 이송 수요 예측 대시보드
+                <span class="badge">AI Engine v2.4</span>
+            </h1>
+            <p>119 구급 이송 빅데이터 기반 AI 분석 및 미래 월별 응급 이송 수요 정밀 예측 센터</p>
+        </div>
+        <div class="system-info">
+            <span class="pulse-dot"></span>
+            <span>시스템 정상 가동 중 (데이터 최신화: 2026-10-01)</span>
+        </div>
+    </header>
+
+    <!-- SECTION 1: 대시보드 & 분석 차트 -->
+    <section style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="section-header">
+            <h2>01. 구급 수요 예측 대시보드</h2>
+            <span class="tag">REAL-TIME FORECAST</span>
+        </div>
+
+        <!-- Controls Bar (질환 분류 필터 제거) -->
+        <div class="controls-bar">
+            <div class="control-group">
+                <span class="control-label"><i data-lucide="calendar"></i> 예측 기간 선택 (월별)</span>
+                <div class="tab-group" id="monthTabs">
+                    <button class="tab-btn" onclick="setForecastPeriod(1, this)">향후 1개월</button>
+                    <button class="tab-btn" onclick="setForecastPeriod(2, this)">2개월</button>
+                    <button class="tab-btn active" onclick="setForecastPeriod(3, this)">3개월</button>
+                    <button class="tab-btn" onclick="setForecastPeriod(4, this)">4개월</button>
+                    <button class="tab-btn" onclick="setForecastPeriod(5, this)">5개월</button>
+                    <button class="tab-btn" onclick="setForecastPeriod(6, this)">6개월</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label"><i data-lucide="map-pin"></i> 지역 선택</span>
+                <select class="custom-select" id="districtSelect" onchange="updateDashboard()">
+                    <option value="all">서울특별시 전체</option>
+                    <option value="gangnam">강남구</option>
+                    <option value="gwanak">관악구</option>
+                    <option value="mapo">마포구</option>
+                    <option value="songpa">송파구</option>
+                    <option value="yeongdeungpo">영등포구</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>선택 기간 월평균 예상 이송</span>
+                    <i data-lucide="ambulance" style="color: var(--primary-blue);"></i>
+                </div>
+                <div class="kpi-value" id="kpiAvgDemand">36,840 건</div>
+                <div class="kpi-sub up">
+                    <i data-lucide="trending-up"></i> 전년 동기 대비 +4.8% 증가 예상
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>최고 피크 예상 월</span>
+                    <i data-lucide="alert-triangle" style="color: #f59e0b;"></i>
+                </div>
+                <div class="kpi-value" id="kpiPeakMonth">12월 (동절기)</div>
+                <div class="kpi-sub" style="color: var(--text-sub);">
+                    한파로 인한 심뇌혈관 환자 급증 예상
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>최대 집중 위험 지역</span>
+                    <i data-lucide="shield-alert" style="color: #ef4444;"></i>
+                </div>
+                <div class="kpi-value">강남구 / 관악구</div>
+                <div class="kpi-sub up">
+                    평시 대비 이송 수요 +22.4%
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>전년 동기 대비 예측 변동률</span>
+                    <i data-lucide="bar-chart" style="color: var(--accent-cyan);"></i>
+                </div>
+                <div class="kpi-value" style="color: #60a5fa;">+5.2%</div>
+                <div class="kpi-sub" style="color: var(--text-sub);">
+                    고령층 증가 및 계절적 요인 반영
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Visualizations -->
+        <div class="main-grid">
+            <!-- Main Line Chart -->
+            <div class="card">
+                <div class="card-title">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="line-chart" style="color: var(--accent-cyan);"></i>
+                        월별 응급 이송 수요 추이 및 예측
+                    </span>
+                    <span style="font-size: 12px; font-weight: normal; color: var(--text-sub);" id="chartSubtitle">
+                        최근 6개월 실적 + 향후 3개월 AI 예측
+                    </span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="demandChart"></canvas>
+                </div>
+            </div>
+
+            <!-- District Risk Ranking -->
+            <div class="card">
+                <div class="card-title">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="bar-chart-2" style="color: var(--accent-purple);"></i>
+                        자치구별 예상 수요 순위
+                    </span>
+                </div>
+                <div class="district-list">
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num rank-1">1</span>
+                            <span>강남구</span>
+                        </div>
+                        <span style="font-weight: 600; color: #f87171;">월평균 3,420건 (+8.2%)</span>
+                    </div>
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num rank-2">2</span>
+                            <span>관악구</span>
+                        </div>
+                        <span style="font-weight: 600; color: #fb923c;">월평균 2,980건 (+6.5%)</span>
+                    </div>
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num rank-3">3</span>
+                            <span>송파구</span>
+                        </div>
+                        <span style="font-weight: 600; color: #fb923c;">월평균 2,850건 (+5.1%)</span>
+                    </div>
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num">4</span>
+                            <span>영등포구</span>
+                        </div>
+                        <span style="font-weight: 600;">월평균 2,610건 (+3.4%)</span>
+                    </div>
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num">5</span>
+                            <span>마포구</span>
+                        </div>
+                        <span style="font-weight: 600;">월평균 2,420건 (+2.1%)</span>
+                    </div>
+                    <div class="district-item">
+                        <div class="district-info">
+                            <span class="rank-num">6</span>
+                            <span>강서구</span>
+                        </div>
+                        <span style="font-weight: 600;">월평균 2,350건 (+1.8%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: 세부 질환 및 연령별 세부 분석 -->
+    <section style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="section-header">
+            <h2>02. 자치구 세부 응급 질환 및 연령군 분석</h2>
+            <span class="tag">DEEP ANALYSIS</span>
+        </div>
+
+        <div class="sub-grid">
+            <div class="card">
+                <div class="card-title">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="pie-chart" style="color: var(--primary-blue);"></i>
+                        예상 주요 응급 질환 구성비
+                    </span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="diseaseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="users" style="color: #10b981;"></i>
+                        연령대별 구급 이송 수요 비율
+                    </span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: AI 모델 설명 -->
+    <section class="ai-model-section">
+        <div class="section-header">
+            <h2 style="color: var(--accent-cyan);">03. AI 예측 모델 알고리즘 및 성능 명세</h2>
+            <span class="tag" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3);">MODEL SPECS</span>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-sub); line-height: 1.6;">
+            본 시스템에 적용된 <strong>Emergency AI Engine v2.4</strong>는 서울시 25개 자치구의 과거 이송 기록과 인구 동태 데이터를 기반으로 다변량 시계열 딥러닝 알고리즘을 통해 미래 구급 수요를 정밀 시뮬레이션합니다.
+        </p>
+
+        <div class="model-header-cards">
+            <div class="accuracy-card">
+                <div>
+                    <div style="font-size: 13px; color: var(--text-sub);">AI 모델 예측 신뢰도</div>
+                    <div class="accuracy-val">95.2%</div>
+                    <div style="font-size: 12px; color: #10b981; margin-top: 4px;">Validation Loss 0.042 (MAE 기준)</div>
+                </div>
+                <i data-lucide="check-circle-2" style="width: 48px; height: 48px; color: #10b981; opacity: 0.8;"></i>
+            </div>
+
+            <div class="accuracy-card" style="border-color: rgba(59, 130, 246, 0.3); background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.05));">
+                <div>
+                    <div style="font-size: 13px; color: var(--text-sub);">최신 모델 업데이트</div>
+                    <div class="accuracy-val" style="color: var(--primary-blue); font-size: 26px;">2026. 10. 01</div>
+                    <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">매월 1일 최신 이송 실적 기반 자동 재학습</div>
+                </div>
+                <i data-lucide="refresh-cw" style="width: 44px; height: 44px; color: var(--primary-blue); opacity: 0.8;"></i>
+            </div>
+        </div>
+
+        <div class="model-grid">
+            <div class="model-card">
+                <div class="model-card-header">
+                    <i data-lucide="layers"></i> 알고리즘 아키텍처
+                </div>
+                <ul>
+                    <li><strong>ST-GCN + LSTM Hybrid</strong>: 공간적 상호작용(Graph Neural Network)과 시계열 패턴(LSTM) 복합 추출</li>
+                    <li><strong>Prophet & XGBoost Ensemble</strong>: 계절성 분석 및 급격한 변동 요인에 강건하게 대응</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-card-header">
+                    <i data-lucide="database"></i> 학습 데이터셋 정보
+                </div>
+                <ul>
+                    <li><strong>과거 5개년 이송 데이터</strong>: 119 구급 출동 및 응급실 이송 기록 280만 건</li>
+                    <li><strong>인구 구조 통계</strong>: 자치구별 고령인구, 1인 가구 비율 및 주거지 밀도</li>
+                    <li><strong>응급 의료 자원 정보</strong>: 권역응급의료센터 및 가용 병상 실시간 연동</li>
+                </ul>
+            </div>
+
+            <div class="model-card">
+                <div class="model-card-header">
+                    <i data-lucide="award"></i> 성능 검증 지표
+                </div>
+                <ul>
+                    <li><strong>MAPE (평균 절대 백분율 오차)</strong>: 4.8% 이내 (정확도 95.2% 달성)</li>
+                    <li><strong>RMSE / MAE</strong>: RMSE 124.5 / MAE 89.2 (월별 자치구 단위 기준)</li>
+                    <li><strong>Cross Validation</strong>: 5-Fold 시계열 교차 검증 통과</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        119 구급 수요 분석 · 응급의료 정보 통합 서비스 | AI 응급 이송 수요 예측 대시보드
+    </footer>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    let demandChart;
+    let selectedMonths = 3;
+
+    const baseMonths = ['5월', '6월', '7월', '8월', '9월', '10월'];
+    const pastData = [32100, 33400, 35200, 36800, 34500, 35100];
+
+    const futureMonthsAll = ['11월', '12월', '1월', '2월', '3월', '4월'];
+    const futureDataAll = [37200, 39500, 38800, 36200, 35400, 34800];
+
+    function initCharts() {
+        const ctx = document.getElementById('demandChart').getContext('2d');
+        demandChart = new Chart(ctx, {
+            type: 'line',
+            data: getChartData(selectedMonths),
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } },
+                    y: { 
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                        ticks: { color: '#9ca3af', callback: v => v.toLocaleString() + '건' } 
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f3f4f6', usePointStyle: true } }
+                }
+            }
+        });
+
+        const ctxDisease = document.getElementById('diseaseChart').getContext('2d');
+        new Chart(ctxDisease, {
+            type: 'doughnut',
+            data: {
+                labels: ['심뇌혈관 질환', '급성 외상/사고', '호흡기 질환', '기타 질환'],
+                datasets: [{
+                    data: [38, 28, 20, 14],
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#6b7280'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#f3f4f6' } }
+                }
+            }
+        });
+
+        const ctxAge = document.getElementById('ageChart').getContext('2d');
+        new Chart(ctxAge, {
+            type: 'bar',
+            data: {
+                labels: ['10대 이하', '20~30대', '40~50대', '60~70대', '80대 이상'],
+                datasets: [{
+                    label: '예상 이송 비율(%)',
+                    data: [5, 12, 22, 38, 23],
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#9ca3af' }, grid: { display: false } },
+                    y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function getChartData(forecastMonths) {
+        const labels = [...baseMonths];
+        for (let i = 0; i < forecastMonths; i++) {
+            labels.push(futureMonthsAll[i] + ' (예측)');
+        }
+
+        const actualSeries = [...pastData];
+        for (let i = 0; i < forecastMonths; i++) actualSeries.push(null);
+
+        const forecastSeries = new Array(baseMonths.length - 1).fill(null);
+        forecastSeries.push(pastData[pastData.length - 1]);
+        for (let i = 0; i < forecastMonths; i++) forecastSeries.push(futureDataAll[i]);
+
+        return {
+            labels: labels,
+            datasets: [
+                {
+                    label: '과거 실적 데이터',
+                    data: actualSeries,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'AI 예측 수요',
+                    data: forecastSeries,
+                    borderColor: '#8b5cf6',
+                    borderDash: [5, 5],
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        };
+    }
+
+    function setForecastPeriod(months, btn) {
+        selectedMonths = months;
+        document.querySelectorAll('#monthTabs .tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.getElementById('chartSubtitle').innerText = `최근 6개월 실적 + 향후 ${months}개월 AI 예측`;
+
+        if (demandChart) {
+            demandChart.data = getChartData(selectedMonths);
+            demandChart.update();
+        }
+
+        const sum = futureDataAll.slice(0, months).reduce((a, b) => a + b, 0);
+        document.getElementById('kpiAvgDemand').innerText = Math.round(sum / months).toLocaleString() + ' 건';
+    }
+
+    function updateDashboard() {
+        if (demandChart) demandChart.update();
+    }
+
+    window.onload = () => {
+        initCharts();
+    };
+</script>
+</body>
+</html>
