@@ -5,8 +5,13 @@
 - 일반 23개 구: 공공데이터포털 NMC 실시간 응급실 가용병상
 - 강북구·마포구: 실시간 가용병상 API 미제공 예외 UI용 정적 응급실 병상 수
 - 강북구·마포구에는 인접 자치구의 실시간 가용병상도 함께 안내
+
+화면 구조
+- templates/base.html 을 main·real_time·predict.html 이 상속
+- header.html·footer.html 은 base.html 에서 include
 """
 import os
+import unicodedata
 import json
 import re
 import time
@@ -16,13 +21,15 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, send_from_directory, abort
+from jinja2 import BaseLoader, TemplateNotFound
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
 
-app = Flask(__name__)
+# 기본 static 경로는 끄고, 아래 static_files()에서 직접 찾음
+app = Flask(__name__, static_folder=None)
 app.json.ensure_ascii = False
 
 
@@ -42,7 +49,7 @@ DATA_GO_KR_KEY = (
 HOST = os.getenv("APP_HOST", "0.0.0.0")
 # 클라우드(Render 등)는 PORT 환경변수를 자동으로 넣어 줌
 PORT = int(os.getenv("PORT") or os.getenv("APP_PORT", "5000"))
-AUTO_OPEN_BROWSER = env_bool("AUTO_OPEN_BROWSER", False)
+AUTO_OPEN_BROWSER = env_bool("AUTO_OPEN_BROWSER", False)  # bat 실행 시 1로 켜짐
 
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "").strip()
 START_SCHEDULER = env_bool("START_SCHEDULER", True)
@@ -69,34 +76,150 @@ API_USAGE_FILE = os.path.join(DATA_DIR, "api_usage.json")
 NIA_BASE_URL = "http://apis.data.go.kr/B552657/ErmctInfoInqireService"
 
 
-def find_file(*names):
-    """data/ 폴더 우선, 없으면 실행 폴더에서 찾기"""
-    for name in names:
-        for folder in (os.path.join(BASE_DIR, "data"), BASE_DIR):
-            path = os.path.join(folder, name)
-            if os.path.exists(path):
-                return path
-    return os.path.join(BASE_DIR, names[0])
+# 파일을 찾을 기준 폴더: py 파일 폴더 + 그 상위 폴더
+SEARCH_ROOTS = [BASE_DIR, os.path.dirname(BASE_DIR)]
+SKIP_DIRS = {".git", "__pycache__", "node_modules", "venv", ".venv", ".ipynb_checkpoints"}
 
 
-HOME_FILE = find_file(
-    os.getenv("HOME_FILE", "main_menu_v1.html"),
-)
-BEDS_FILE = find_file(
-    os.getenv("BEDS_FILE", "실시간_병상관제_v1.html"),
-)
-# 팀원 페이지 파일명이 정해지면 .env의 ANALYSIS_FILE 값만 바꾸면 됩니다.
-ANALYSIS_FILE = find_file(
-    os.getenv("ANALYSIS_FILE", "analysis.html"),
-)
+def loose_name(x):
+    """파일명 비교용: 자모 분리·대소문자·앞뒤 공백·' (1)'·'- 복사본'·중복 확장자 무시"""
+    x = unicodedata.normalize("NFC", str(x)).strip().lower()
+    for ext in (".txt", ".htm", ".html", ".css", ".js"):
+        while x.endswith(ext + ext):            # a.html.html → a.html
+            x = x[: -len(ext)]
+    if x.endswith(".html.txt"):                  # a.html.txt → a.html
+        x = x[:-4]
+    x = re.sub(r"\s*(\(\d+\)|-\s*복사본)(?=\.[a-z]+$)", "", x)  # a (1).html → a.html
+    return x
 
 
-def serve_html(path):
-    """UTF-8 HTML 파일을 그대로 반환"""
+def walk_files(max_depth=3):
+    """검색 기준 폴더 아래 파일 경로를 하나씩 돌려줌"""
+    for root in SEARCH_ROOTS:
+        for folder, dirs, files in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+            if folder[len(root):].count(os.sep) >= max_depth:
+                dirs[:] = []
+            for f in files:
+                yield os.path.join(folder, f)
+
+
+def find_file(*names, subfolders=("templates", "data", "")):
+    """1) 정해진 폴더 순서로 찾기  2) 없으면 하위 폴더에서 비슷한 이름까지 찾기"""
+    names = [n.strip() for n in names if n and n.strip()]
+    for root in SEARCH_ROOTS:
+        for sub in subfolders:
+            for name in names:
+                path = os.path.join(root, sub, name)
+                if os.path.isfile(path):
+                    return path
+    targets = {loose_name(n) for n in names}
+    for path in walk_files():
+        if loose_name(os.path.basename(path)) in targets:
+            return path
+    return os.path.join(BASE_DIR, "templates", names[0])
+
+
+def html_candidates():
+    """못 찾았을 때 안내용: 실제로 있는 html 파일 목록"""
+    return sorted({p for p in walk_files() if p.lower().endswith((".html", ".htm", ".html.txt"))})[:30]
+
+
+# 서버 실행 후 파일을 옮겨도 되도록, 화면을 열 때마다 다시 찾음
+# 순서: .env 지정 파일 → base.html 상속 템플릿 → 예전 단독 HTML (백업용)
+def page_names(env_name, new_name, old_name):
+    custom = os.getenv(env_name, "").strip()
+    return tuple(n for n in (custom, new_name, old_name) if n)
+
+
+HOME_NAMES = page_names("HOME_FILE", "main.html", "SEOUL_EMERGENCY_HUB.html")
+BEDS_NAMES = page_names("BEDS_FILE", "real_time.html", "실시간_병상관제_v1.html")
+ANALYSIS_NAMES = page_names("ANALYSIS_FILE", "predict.html", "데이터분석_예측.html")
+
+# 화면 템플릿이 함께 쓰는 공통 조각
+SHARED_TEMPLATES = ("base.html", "header.html", "footer.html")
+
+# 예측 노트북(04_대시보드_예측연결)이 만든 대시보드 데이터
+# json 우선, 없으면 js 사용 / 다른 위치에 있으면 .env의 DASHBOARD_FILE에 전체 경로 지정
+DASHBOARD_NAMES = ("dashboard_data.json", "dashboard_data.js")
+DASHBOARD_SUBFOLDERS = ("outputs", "static", "data", "")
+
+
+class FindFileLoader(BaseLoader):
+    """{% extends %}·{% include %} 파일도 find_file()로 찾는 템플릿 로더"""
+
+    def get_source(self, environment, template):
+        path = find_file(template)
+        if not os.path.isfile(path):
+            raise TemplateNotFound(template)
+        with open(path, "r", encoding="utf-8") as f:
+            source = f.read()
+        mtime = os.path.getmtime(path)
+        # 파일이 바뀌면 다시 읽음 (서버 재시작 없이 html 수정 반영)
+        return source, path, lambda: os.path.isfile(path) and os.path.getmtime(path) == mtime
+
+
+app.jinja_env.loader = FindFileLoader()
+app.jinja_env.auto_reload = True
+
+
+@app.get("/static/<path:filename>", endpoint="static")
+def static_files(filename):
+    """static/ → static/css·js → 실행 폴더 → 하위 폴더 검색 순서로 css·js 찾기"""
+    path = find_file(filename, os.path.basename(filename),
+                     subfolders=("static", os.path.join("static", "css"), os.path.join("static", "js"),
+                                 "outputs", ""))
     if not os.path.isfile(path):
-        return jsonify({"error": "HTML 파일 없음", "expected_path": path}), 404
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
+        abort(404)
+    return send_from_directory(os.path.dirname(path), os.path.basename(path))
+
+
+def first_existing(names):
+    """후보 이름 중 실제로 있는 첫 파일 이름 (없으면 None)"""
+    for name in names:
+        if os.path.isfile(find_file(name)):
+            return name
+    return None
+
+
+def serve_html(names):
+    """화면 템플릿을 찾아 렌더링 (base·header·footer 상속 포함, url_for → 실제 css/js 경로)"""
+    name = first_existing(names)
+    if name is None:
+        return jsonify({"error": "HTML 파일 없음", "찾은_파일명": list(names),
+                        "검색한_폴더": SEARCH_ROOTS,
+                        "실제_있는_html": html_candidates()}), 404
+    try:
+        return render_template(name)
+    except TemplateNotFound as e:
+        # 화면 파일은 있는데 base.html / header.html / footer.html 이 없는 경우
+        return jsonify({"error": "공통 템플릿 파일 없음", "화면_파일": name,
+                        "없는_파일": e.name, "필요한_파일": list(SHARED_TEMPLATES),
+                        "실제_있는_html": html_candidates()}), 500
+
+
+def find_dashboard_file():
+    """대시보드 데이터 파일 경로 (없으면 None)"""
+    custom = os.getenv("DASHBOARD_FILE", "").strip()
+    if custom:
+        return custom if os.path.isfile(custom) else None
+    for name in DASHBOARD_NAMES:
+        path = find_file(name, subfolders=DASHBOARD_SUBFOLDERS)
+        if os.path.isfile(path):
+            return path
+    return None
+
+
+def load_dashboard_data():
+    """json은 그대로, js는 'const DASHBOARD_DATA = {...};'에서 { } 부분만 읽기"""
+    path = find_dashboard_file()
+    if path is None:
+        return None, None
+    with open(path, "r", encoding="utf-8-sig") as f:
+        text = f.read()
+    if path.lower().endswith(".js"):
+        text = text[text.index("{"): text.rindex("}") + 1]
+    return json.loads(text), path
 
 
 # ------------------------------------------------------------
@@ -501,19 +624,38 @@ def district_payload(snapshot, gu):
 @app.get("/")
 def index():
     """서비스 선택 메인 화면"""
-    return serve_html(HOME_FILE)
+    return serve_html(HOME_NAMES)
 
 
 @app.get("/analysis")
 def analysis_page():
     """팀원 제작: 시계열 분석 + AI 예측 모델"""
-    return serve_html(ANALYSIS_FILE)
+    return serve_html(ANALYSIS_NAMES)
+
+
+@app.get("/api/dashboard-data")
+def dashboard_data():
+    """분석·예측 페이지용 데이터 (요청마다 파일을 다시 읽음 → 노트북 재실행 시 바로 반영)"""
+    try:
+        data, path = load_dashboard_data()
+    except (ValueError, OSError) as e:
+        return jsonify({"error": f"대시보드 데이터 파일을 읽지 못했습니다: {e}"}), 500
+    if data is None:
+        return jsonify({"error": "dashboard_data.json 파일이 없습니다. 예측 노트북을 실행한 뒤 "
+                                 "outputs 폴더째 이 서버 폴더에 두세요.",
+                        "찾은_파일명": list(DASHBOARD_NAMES),
+                        "검색한_폴더": SEARCH_ROOTS}), 404
+    # jsonify는 키를 가나다순으로 정렬함 → 파일 순서(서울 전체 먼저) 유지를 위해 json.dumps 사용
+    response = app.response_class(json.dumps(data, ensure_ascii=False),
+                                  mimetype="application/json")
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.get("/beds")
 def beds_page():
     """실시간 응급실 병상 관제"""
-    return serve_html(BEDS_FILE)
+    return serve_html(BEDS_NAMES)
 
 
 @app.get("/api/realtime-beds")
@@ -564,6 +706,7 @@ def status():
         "refresh_state": refresh_state(),
         "full_refresh_limit": FULL_REFRESH_LIMIT,
         "auto_refresh_minutes": AUTO_REFRESH_MINUTES,
+        "dashboard_file": find_dashboard_file(),
     })
 
 
@@ -618,9 +761,22 @@ if __name__ == "__main__":
     print("=" * 58)
     print(f"[KEY] DATA_GO_KR   : {'OK (메인)' if DATA_GO_KR_KEY else 'MISSING → 갱신 불가'}")
     print(f"[ADMIN] 수동 갱신    : {'ON' if ADMIN_TOKEN else 'OFF (ADMIN_TOKEN 없음)'}")
-    print(f"[HOME]     {HOME_FILE}")
-    print(f"[ANALYSIS] {ANALYSIS_FILE}")
-    print(f"[BEDS]     {BEDS_FILE}")
+    missing = False
+    for label, names in (("HOME", HOME_NAMES), ("ANALYSIS", ANALYSIS_NAMES), ("BEDS", BEDS_NAMES)):
+        name = first_existing(names)
+        missing |= (name is None and label != "ANALYSIS")
+        print(f"[{label:8}] {'OK  ' + find_file(name) if name else '없음 ' + names[0]}")
+    for name in SHARED_TEMPLATES:
+        path = find_file(name)
+        ok = os.path.isfile(path)
+        missing |= not ok
+        print(f"[{'COMMON':8}] {'OK  ' + path if ok else '없음 ' + name}")
+    if missing:
+        print("[안내] 실제로 있는 html 파일:")
+        for p in html_candidates():
+            print("       ", p)
+    dash_path = find_dashboard_file()
+    print(f"[DASHBOARD] {'OK  ' + dash_path if dash_path else '없음 → 분석 페이지에 안내 문구 표시'}")
     for name in DAILY_LIMITS:
         print(f"[LIMIT] {name:10} {usage[name]['used']}/{usage[name]['limit']} 사용")
     print(f"[SNAPSHOT] {load_snapshot().get('updated_at') or '없음 → 자동 수집 시작'}")
