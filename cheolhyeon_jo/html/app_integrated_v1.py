@@ -754,6 +754,14 @@ if START_SCHEDULER:
     start_scheduler()
 
 
+# ------------------------------------------------------------
+# 챗봇 연결 (base.html 오른쪽 아래 챗봇 창 → /api/chat)
+# chatbot_exaone.py 가 이 파일과 같은 폴더에 있어야 함
+# ------------------------------------------------------------
+from chatbot_exaone import init_chatbot
+init_chatbot(app)
+
+
 if __name__ == "__main__":
     usage = api_usage_status()
     print("=" * 58)

@@ -1,52 +1,53 @@
-﻿Hospital_ID,Hospital_Name,Tel,Updated_At,Beds_Raw,Ambulance_Available,District,collected_at,is_ffilled,data_source,Is_Overcrowded,Is_Stale,Beds_Unknown,Available_Beds
-A1100015,연세대학교의과대학강남세브란스병원,02-2019-3114,2026-09-29 16:06:27,-1,Y,강남구,2026-09-29 16:14:32.007098,False,existing_realtime_API,True,False,False,0.0
-A1100010,삼성서울병원,02-3410-2114,2026-09-29 16:08:43,-47,Y,강남구,2026-09-29 16:14:32.007098,False,existing_realtime_API,True,False,False,0.0
-A1100043,강동경희대학교병원,02-440-7000,2026-09-29 16:10:20,4,Y,강동구,2026-09-29 16:14:33.614581,False,existing_realtime_API,False,False,False,4.0
-A1100028,성심의료재단강동성심병원,02-2224-2114,2026-09-29 16:09:00,2,Y,강동구,2026-09-29 16:14:33.614581,False,existing_realtime_API,False,False,False,2.0
-A1100053,한국보훈복지의료공단 중앙보훈병원,02-2225-1111,2026-09-29 16:06:14,10,Y,강동구,2026-09-29 16:14:33.614581,False,existing_realtime_API,False,False,False,10.0
-A1120796,이화여자대학교의과대학부속서울병원,1522-7000,2026-09-29 16:06:00,-10,Y,강서구,2026-09-29 16:14:35.806760,False,existing_realtime_API,True,False,False,0.0
-A1100036,부민병원,1577-7582,2026-09-29 16:05:40,10,Y,강서구,2026-09-29 16:14:35.806760,False,existing_realtime_API,False,False,False,10.0
-A1100041,의료법인서울효천의료재단 에이치플러스양지병원,02-1877-8875,2026-09-29 16:10:14,10,Y,관악구,2026-09-29 16:14:36.897256,False,existing_realtime_API,False,False,False,10.0
-A1100002,건국대학교병원,1588-1533,2026-09-29 16:07:53,7,Y,광진구,2026-09-29 16:14:38.006756,False,existing_realtime_API,False,False,False,7.0
-A1100051,혜민병원,02-2049-9000,2026-09-29 16:05:43,5,Y,광진구,2026-09-29 16:14:38.006756,False,existing_realtime_API,False,False,False,5.0
-A1100014,고려대학교의과대학부속구로병원,02-2626-1114,2026-09-29 16:07:43,2,Y,구로구,2026-09-29 16:14:39.063402,False,existing_realtime_API,False,False,False,2.0
-A1100026,구로성심병원,02-2067-1500,2026-09-29 16:09:19,8,Y,구로구,2026-09-29 16:14:39.063402,False,existing_realtime_API,False,False,False,8.0
-A1100049,희명병원,02-804-0002,2026-09-29 16:08:14,10,Y,금천구,2026-09-29 16:14:40.132364,False,existing_realtime_API,False,False,False,10.0
-A1100016,인제대학교상계백병원,02-950-1114,2026-09-29 16:07:39,6,Y,노원구,2026-09-29 16:14:41.720978,False,existing_realtime_API,False,False,False,6.0
-A1100048,노원을지대학교병원,02-970-8000,2026-09-29 16:06:02,9,Y,노원구,2026-09-29 16:14:41.720978,False,existing_realtime_API,False,False,False,9.0
-A1100027,한국원자력의학원원자력병원,02-970-2114,2026-09-29 16:06:30,4,Y,노원구,2026-09-29 16:14:41.720978,False,existing_realtime_API,False,False,False,4.0
-A1100020,의료법인한전의료재단 한일병원,02-901-3114,2026-09-29 16:10:04,15,Y,도봉구,2026-09-29 16:14:42.823904,False,existing_realtime_API,False,False,False,15.0
-A1100001,경희대학교병원,02-958-8114,2026-09-29 16:09:44,4,Y,동대문구,2026-09-29 16:14:43.895920,False,existing_realtime_API,False,False,False,4.0
-A1100021,삼육서울병원,02-2244-0191,2026-09-29 16:06:13,12,Y,동대문구,2026-09-29 16:14:43.895920,False,existing_realtime_API,False,False,False,12.0
-A1100022,서울특별시동부병원,02-920-9114,2026-09-29 16:10:20,7,Y,동대문구,2026-09-29 16:14:43.895920,False,existing_realtime_API,False,False,False,7.0
-A1100050,서울성심병원,02-966-1616,2026-09-29 16:10:20,12,Y,동대문구,2026-09-29 16:14:43.895920,False,existing_realtime_API,False,False,False,12.0
-A1100040,서울특별시보라매병원,02-870-2114,2026-09-29 16:10:00,8,Y,동작구,2026-09-29 16:14:44.995998,False,existing_realtime_API,False,False,False,8.0
-A1100003,중앙대학교병원,1800-1114,2026-09-29 16:10:11,12,Y,동작구,2026-09-29 16:14:44.995998,False,existing_realtime_API,False,False,False,12.0
-A1100007,연세대학교의과대학세브란스병원,02-2228-0114,2026-09-29 16:07:20,-1,Y,서대문구,2026-09-29 16:14:47.702597,False,existing_realtime_API,True,False,False,0.0
-A1100025,의료법인동신의료재단동신병원,02-396-9161,2026-09-29 16:08:49,9,Y,서대문구,2026-09-29 16:14:47.702597,False,existing_realtime_API,False,False,False,9.0
-A1100012,학교법인가톨릭학원가톨릭대학교서울성모병원,0215881511,2026-09-29 16:10:14,-17,Y,서초구,2026-09-29 16:14:48.791821,False,existing_realtime_API,True,False,False,0.0
-A1122033,기쁨병원,02-570-1234,2026-09-29 16:09:58,3,Y,서초구,2026-09-29 16:14:48.791821,False,existing_realtime_API,False,False,False,3.0
-A1100013,한양대학교병원,02-2290-8114,2026-09-29 16:08:32,8,Y,성동구,2026-09-29 16:14:50.398195,False,existing_realtime_API,False,False,False,8.0
-A1100008,학교법인고려중앙학원고려대학교의과대학부속병원(안암병원),1577-0083,2026-09-29 16:09:16,18,Y,성북구,2026-09-29 16:14:51.990664,False,existing_realtime_API,False,False,False,18.0
-A1100009,재단법인아산사회복지재단 서울아산병원,02-3010-3114,2026-09-29 16:07:15,-2,Y,송파구,2026-09-29 16:14:53.566679,False,existing_realtime_API,True,False,False,0.0
-A1100039,경찰병원,02-3400-1114,2026-09-29 14:20:02,3,Y,송파구,2026-09-29 16:14:53.566679,False,existing_realtime_API,False,False,False,3.0
-A1100005,이화여자대학교의과대학부속목동병원,02-2650-5114,2026-09-29 16:05:51,7,Y,양천구,2026-09-29 16:14:54.677532,False,existing_realtime_API,False,False,False,7.0
-A1100019,홍익병원,02-2693-5555,2026-09-29 16:08:12,8,Y,양천구,2026-09-29 16:14:54.677532,False,existing_realtime_API,False,False,False,8.0
-A1100223,서울특별시서남병원,1566-6688,2026-09-29 16:10:00,13,Y,양천구,2026-09-29 16:14:54.677532,False,existing_realtime_API,False,False,False,13.0
-A1100011,가톨릭대학교여의도성모병원,02-1661-7575,2026-09-29 16:10:16,2,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,2.0
-A1100055,한림대학교 강남성심병원,02-829-5114,2026-09-29 16:06:06,17,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,17.0
-A1100054,성애의료재단성애병원,02-840-7114,2026-09-29 16:09:00,9,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,9.0
-A1100024,명지성모병원,02-1899-1475,2026-09-29 16:09:56,8,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,8.0
-A1100037,대림성모병원,02-829-9000,2026-09-29 16:05:43,8,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,8.0
-A1100045,씨엠병원,02-2678-0001,2026-09-29 16:04:59,9,Y,영등포구,2026-09-29 16:14:55.798465,False,existing_realtime_API,False,False,False,9.0
-A1100004,순천향대학교부속서울병원,02-709-9114,2026-09-29 16:09:22,5,Y,용산구,2026-09-29 16:14:57.414700,False,existing_realtime_API,False,False,False,5.0
-A1121013,가톨릭대학교은평성모병원,02-1811-7755,2026-09-29 16:10:16,3,Y,은평구,2026-09-29 16:14:58.500351,False,existing_realtime_API,False,False,False,3.0
-A1100023,의료법인청구성심병원,02-350-3300,2026-09-29 16:08:25,8,Y,은평구,2026-09-29 16:14:58.500351,False,existing_realtime_API,False,False,False,8.0
-A1100017,서울대학교병원,02-1588-5700,2026-09-29 16:10:10,-13,Y,종로구,2026-09-29 16:14:59.573194,False,existing_realtime_API,True,False,False,0.0
-A1100006,강북삼성병원,02-2001-2001,2026-09-29 16:10:30,-1,Y,종로구,2026-09-29 16:14:59.573194,False,existing_realtime_API,True,False,False,0.0
-A1100029,서울적십자병원,02-2002-8000,2026-09-29 16:08:45,8,Y,종로구,2026-09-29 16:14:59.573194,False,existing_realtime_API,False,False,False,8.0
-A1100032,세란병원,02-737-0181,2026-09-29 16:09:08,2,Y,종로구,2026-09-29 16:14:59.573194,False,existing_realtime_API,False,False,False,2.0
-A1100052,국립중앙의료원,02-2260-7114,2026-09-29 16:10:06,10,Y,중구,2026-09-29 16:15:00.685920,False,existing_realtime_API,False,False,False,10.0
-A1100035,서울특별시서울의료원,02-2276-7000,2026-09-29 16:10:01,2,Y,중랑구,2026-09-29 16:15:01.757547,False,existing_realtime_API,False,False,False,2.0
-A1100075,의료법인풍산의료재단동부제일병원,02-437-5011,2026-09-29 16:05:31,6,Y,중랑구,2026-09-29 16:15:01.757547,False,existing_realtime_API,False,False,False,6.0
-A1100044,녹색병원,02-490-2000,2026-09-29 16:10:10,0,Y,중랑구,2026-09-29 16:15:01.757547,False,existing_realtime_API,False,False,False,0.0
+﻿Hospital_ID,Hospital_Name,Tel,Updated_At,Beds_Raw,Ambulance_Available,District,is_ffilled,data_source,collected_at,Is_Overcrowded,Is_Stale,Beds_Unknown,Available_Beds,General_Beds
+A1100015,연세대학교의과대학강남세브란스병원,02-2019-3114,2026-10-02 12:37:05,7.0,Y,강남구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100010,삼성서울병원,02-3410-2114,2026-10-02 12:39:09,-35.0,Y,강남구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100043,강동경희대학교병원,02-440-7114,2026-10-02 12:40:18,5.0,Y,강동구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100028,성심의료재단강동성심병원,02-2224-2114,2026-10-02 12:38:22,5.0,Y,강동구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100053,한국보훈복지의료공단 중앙보훈병원,02-2225-1111,2026-10-02 12:36:21,10.0,Y,강동구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,10.0,
+A1120796,이화여자대학교의과대학부속서울병원,1522-7000,2026-10-02 12:36:02,-12.0,Y,강서구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100036,부민병원,1577-7582,2026-10-02 12:36:41,10.0,Y,강서구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,10.0,
+A1100041,의료법인서울효천의료재단 에이치플러스양지병원,02-1877-8875,2026-10-02 12:40:10,3.0,Y,관악구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,3.0,
+A1100002,건국대학교병원,1588-1533,2026-10-02 12:37:47,6.0,Y,광진구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,6.0,
+A1100051,혜민병원,02-2049-9000,2026-10-02 12:36:35,6.0,Y,광진구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,6.0,
+A1100014,고려대학교의과대학부속구로병원,02-2626-1114,2026-10-02 12:36:41,-6.0,Y,구로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100026,구로성심병원,02-2067-1500,2026-10-02 12:40:09,7.0,Y,구로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100049,희명병원,02-804-0002,2026-10-02 12:38:02,7.0,Y,금천구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100016,인제대학교상계백병원,02-950-1114,2026-10-02 12:38:52,0.0,Y,노원구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,0.0,
+A1100048,노원을지대학교병원,02-970-8000,2026-10-02 12:36:02,7.0,Y,노원구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100027,한국원자력의학원원자력병원,02-970-2114,2026-10-02 12:39:34,5.0,Y,노원구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100020,의료법인한전의료재단 한일병원,02-901-3114,2026-10-02 12:40:04,2.0,Y,도봉구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,2.0,
+A1100001,경희대학교병원,02-958-8114,2026-10-02 12:40:29,-1.0,Y,동대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100021,삼육서울병원,02-2244-0191,2026-10-02 12:38:26,7.0,Y,동대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100022,서울특별시동부병원,02-920-9114,2026-10-02 12:40:20,8.0,Y,동대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,8.0,
+A1100050,서울성심병원,02-966-1616,2026-10-02 12:40:09,16.0,Y,동대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,16.0,
+A1100040,서울특별시보라매병원,02-870-2114,2026-10-02 12:40:00,5.0,Y,동작구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100003,중앙대학교병원,1800-1114,2026-10-02 12:40:09,6.0,Y,동작구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,6.0,
+A1100007,연세대학교의과대학세브란스병원,02-2228-0114,2026-10-02 12:35:55,2.0,Y,서대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,2.0,
+A1100025,의료법인동신의료재단동신병원,02-396-9161,2026-10-02 12:38:20,5.0,Y,서대문구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100012,학교법인가톨릭학원가톨릭대학교서울성모병원,0215881511,2026-10-02 12:40:12,-17.0,Y,서초구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1122033,기쁨병원,02-570-1234,2026-10-02 12:40:15,3.0,Y,서초구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,3.0,
+A1100013,한양대학교병원,02-2290-8114,2026-10-02 12:38:33,7.0,Y,성동구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1100008,학교법인 고려중앙학원 고려대학교의과대학부속병원(안암병원),1577-0083,2026-10-02 12:40:23,-1.0,Y,성북구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100009,재단법인아산사회복지재단 서울아산병원,02-3010-3114,2026-10-02 12:37:15,-2.0,Y,송파구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100005,이화여자대학교의과대학부속목동병원,02-2650-5114,2026-10-02 12:35:53,3.0,Y,양천구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,3.0,
+A1100019,홍익병원,02-2693-5555,2026-10-02 12:38:08,3.0,Y,양천구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,3.0,
+A1100223,서울특별시서남병원,1566-6688,2026-10-02 12:40:00,15.0,Y,양천구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,15.0,
+A1100011,가톨릭대학교여의도성모병원,02-1661-7575,2026-10-02 12:40:12,4.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,4.0,
+A1100055,한림대학교 강남성심병원,02-829-5114,2026-10-02 12:36:08,12.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,12.0,
+A1100054,성애의료재단성애병원,02-840-7114,2026-10-02 12:39:06,10.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,10.0,
+A1100024,명지성모병원,02-1899-1475,2026-10-02 12:40:47,4.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,4.0,
+A1100037,대림성모병원,02-829-9000,2026-10-02 12:40:37,6.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,6.0,
+A1100045,씨엠병원,02-2678-0001,2026-10-02 12:30:00,6.0,Y,영등포구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,6.0,
+A1100004,순천향대학교부속서울병원,02-709-9114,2026-10-02 12:39:23,7.0,Y,용산구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,7.0,
+A1121013,가톨릭대학교은평성모병원,02-1811-7755,2026-10-02 12:40:13,9.0,Y,은평구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,9.0,
+A1100023,의료법인청구성심병원,02-350-3300,2026-10-02 12:38:36,10.0,Y,은평구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,10.0,
+A1100017,서울대학교병원,02-1588-5700,2026-10-02 12:40:21,-11.0,Y,종로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100006,강북삼성병원,02-2001-2001,2026-10-02 12:40:21,-3.0,Y,종로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,True,False,False,0.0,
+A1100029,서울적십자병원,02-2002-8000,2026-10-02 12:39:46,10.0,Y,종로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,10.0,
+A1100032,세란병원,02-737-0181,2026-10-02 12:38:16,8.0,Y,종로구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,8.0,
+A1100052,국립중앙의료원,02-2260-7114,2026-10-02 12:40:06,12.0,Y,중구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,12.0,
+A1100035,서울특별시서울의료원,02-2276-7000,2026-10-02 12:40:00,4.0,Y,중랑구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,4.0,
+A1100075,의료법인풍산의료재단동부제일병원,02-437-5011,2026-10-02 12:35:35,5.0,Y,중랑구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,5.0,
+A1100044,녹색병원,02-490-2000,2026-10-02 10:25:09,3.0,Y,중랑구,False,existing_realtime_API,2026-10-02 12:42:53.483437,False,False,False,3.0,
+A1100172,서울현대병원,02-1588-6853,2016-01-14 22:49:16,,,강북구,False,safetydata_DSSP-IF-00242,2026-10-02 12:42:56.897225,False,True,True,,10.0
+A1100030,의료법인성화의료재단대한병원,02-903-3232,2021-06-02 18:24:00,,,강북구,False,safetydata_DSSP-IF-00242,2026-10-02 12:42:56.897225,False,True,True,,5.0

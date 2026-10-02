@@ -28,6 +28,51 @@
     </script>
     <style>
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        /* ---------- 챗봇 창 (오른쪽 아래) ---------- */
+        #cb-btn {
+            position: fixed; right: 24px; bottom: 24px; z-index: 9998;
+            width: 60px; height: 60px; border: 0; border-radius: 50%;
+            background: #059669; color: #fff; font-size: 24px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(5, 150, 105, .35); transition: transform .2s;
+        }
+        #cb-btn:hover { transform: scale(1.06); }
+        #cb-panel {
+            position: fixed; right: 24px; bottom: 96px; z-index: 9999;
+            width: 370px; height: 540px; max-height: calc(100vh - 120px);
+            display: none; flex-direction: column; overflow: hidden;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, .2);
+            font-family: 'Pretendard', sans-serif; color: #1e293b;
+        }
+        #cb-panel.open { display: flex; }
+        .cb-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #0f172a; color: #fff; }
+        .cb-head b { font-size: 15px; }
+        .cb-head button { margin-left: auto; background: none; border: 0; color: #cbd5e1; font-size: 18px; cursor: pointer; }
+        #cb-panel * { box-sizing: border-box; }
+        .cb-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+        .cb-chip {
+            flex-shrink: 0; font-size: 12px; font-weight: 600; border-radius: 999px;
+            border: 1px solid #cbd5e1; background: #f8fafc; padding: 5px 10px; cursor: pointer; font-family: inherit;
+        }
+        .cb-chip:hover { border-color: #059669; color: #047857; }
+        #cb-log { flex: 1; overflow-y: auto; padding: 14px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .cb-msg { max-width: 85%; padding: 9px 12px; border-radius: 14px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: keep-all; }
+        .cb-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; border-top-left-radius: 4px; }
+        .cb-msg.me { align-self: flex-end; background: #059669; color: #fff; border-top-right-radius: 4px; }
+        .cb-msg small { display: block; margin-top: 4px; font-size: 10px; color: #94a3b8; }
+        .cb-input { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #e2e8f0; }
+        .cb-input textarea {
+            flex: 1; resize: none; height: 40px; padding: 9px 12px; font-size: 13px; font-family: inherit;
+            border: 1px solid #cbd5e1; border-radius: 12px; outline: none;
+        }
+        .cb-input textarea:focus { border-color: #059669; }
+        .cb-input button { width: 44px; border: 0; border-radius: 12px; background: #059669; color: #fff; cursor: pointer; }
+        .cb-input button:disabled { background: #94a3b8; cursor: wait; }
+        @media (max-width: 480px) {
+            #cb-panel { right: 8px; left: 8px; width: auto; bottom: 88px; }
+            #cb-btn { right: 16px; bottom: 16px; }
+        }
     </style>
 
     <!-- 페이지별 CSS / 라이브러리 -->
@@ -43,6 +88,99 @@
 
     {% block footer %}
         {% include 'footer.html' %}
+    {% endblock %}
+
+    <!-- 챗봇 창 : 페이지에서 chatbot 블록을 빈 블록으로 덮어쓰면 숨김 -->
+    {% block chatbot %}
+    <button id="cb-btn" type="button" title="응급의료 챗봇"><i class="fa-solid fa-comment-medical"></i></button>
+
+    <div id="cb-panel">
+        <div class="cb-head">
+            <i class="fa-solid fa-truck-medical"></i>
+            <b>응급의료 안내 챗봇</b>
+            <button type="button" id="cb-close" title="닫기"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="cb-bar">
+            <button type="button" class="cb-chip">응급실 가용 병상</button>
+            <button type="button" class="cb-chip">이송 건수 예측</button>
+            <button type="button" class="cb-chip">생활인구 예측</button>
+        </div>
+
+        <div id="cb-log"></div>
+
+        <div class="cb-input">
+            <textarea id="cb-text" placeholder="예) 강남구 응급실 병상 알려줘" maxlength="300"></textarea>
+            <button type="button" id="cb-send" title="보내기"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const $ = id => document.getElementById(id);
+        const panel = $('cb-panel'), log = $('cb-log'), text = $('cb-text'), send = $('cb-send');
+
+        // 메시지 추가 (textContent → 태그가 그대로 글자로 보임)
+        function add(who, msg, note) {
+            const box = document.createElement('div');
+            box.className = 'cb-msg ' + who;
+            box.textContent = msg;
+            if (note) { const s = document.createElement('small'); s.textContent = note; box.appendChild(s); }
+            log.appendChild(box);
+            log.scrollTop = log.scrollHeight;
+            return box;
+        }
+
+        async function ask(question) {
+            question = question.trim();
+            if (!question || send.disabled) return;
+            add('me', question);
+            text.value = '';
+            send.disabled = true;
+            const wait = add('bot', '답변을 만드는 중입니다…');
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: question })
+                });
+                const data = await res.json();
+                wait.remove();
+                const NOTE = { exaone: 'EXAONE · API 데이터 기반', summary: 'API 데이터 요약' };
+                add('bot', data.answer || data.error || '답변이 없습니다.', NOTE[data.source]);
+            } catch (e) {
+                wait.remove();
+                add('bot', '서버에 연결하지 못했습니다. Flask 서버가 실행 중인지 확인해 주세요.');
+            }
+            send.disabled = false;
+            text.focus();
+        }
+
+        $('cb-btn').onclick = () => {
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                if (!log.children.length) {
+                    add('bot', '안녕하세요! 서울시 응급의료 안내 챗봇입니다.\n질문에 구 이름을 넣어 물어보세요.\n예) 강남구 응급실 병상 알려줘');
+                }
+                text.focus();
+            }
+        };
+        $('cb-close').onclick = () => panel.classList.remove('open');
+        send.onclick = () => ask(text.value);
+        text.onkeydown = e => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(text.value); }
+        };
+        // 빠른 질문 : 입력창에 문장을 넣고, 맨 앞에 구 이름을 쓰도록 커서를 둠
+        document.querySelectorAll('.cb-chip').forEach(chip => {
+            chip.onclick = () => {
+                text.value = ' ' + chip.textContent + ' 알려줘';
+                text.focus();
+                text.setSelectionRange(0, 0);
+            };
+        });
+    })();
+    </script>
     {% endblock %}
 
     <!-- 페이지별 JS -->
