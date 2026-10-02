@@ -13,7 +13,7 @@
 2026-01,동작구,720,Ensemble(GB+Ridge),False
 2026-01,마포구,1122,Ensemble(GB+Ridge),False
 2026-01,서대문구,813,Ensemble(GB+Ridge),False
-2026-01,서초구,1076,Ensemble(GB+Ridge),False
+2026-01,서초구,1075,Ensemble(GB+Ridge),False
 2026-01,성동구,599,Ensemble(GB+Ridge),False
 2026-01,성북구,979,Ensemble(GB+Ridge),False
 2026-01,송파구,1235,Ensemble(GB+Ridge),False
@@ -42,7 +42,7 @@
 2026-02,성동구,543,Ensemble(GB+Ridge),False
 2026-02,성북구,879,Ensemble(GB+Ridge),False
 2026-02,송파구,1124,Ensemble(GB+Ridge),False
-2026-02,양천구,1056,Ensemble(GB+Ridge),False
+2026-02,양천구,1057,Ensemble(GB+Ridge),False
 2026-02,영등포구,955,Ensemble(GB+Ridge),False
 2026-02,용산구,521,Ensemble(GB+Ridge),False
 2026-02,은평구,940,Ensemble(GB+Ridge),False
@@ -77,7 +77,7 @@
 2026-04,강남구,1312,Ensemble(GB+Ridge),False
 2026-04,강동구,1053,Ensemble(GB+Ridge),False
 2026-04,강북구,948,Ensemble(GB+Ridge),False
-2026-04,강서구,1145,Ensemble(GB+Ridge),False
+2026-04,강서구,1146,Ensemble(GB+Ridge),False
 2026-04,관악구,1055,Ensemble(GB+Ridge),False
 2026-04,광진구,742,Ensemble(GB+Ridge),False
 2026-04,구로구,1168,Ensemble(GB+Ridge),False
@@ -90,7 +90,7 @@
 2026-04,서대문구,783,Ensemble(GB+Ridge),False
 2026-04,서초구,1043,Ensemble(GB+Ridge),False
 2026-04,성동구,600,Ensemble(GB+Ridge),False
-2026-04,성북구,914,Ensemble(GB+Ridge),False
+2026-04,성북구,915,Ensemble(GB+Ridge),False
 2026-04,송파구,1223,Ensemble(GB+Ridge),False
 2026-04,양천구,1086,Ensemble(GB+Ridge),False
 2026-04,영등포구,1006,Ensemble(GB+Ridge),False
@@ -113,9 +113,9 @@
 2026-05,동작구,782,Ensemble(GB+Ridge),False
 2026-05,마포구,1176,Ensemble(GB+Ridge),False
 2026-05,서대문구,860,Ensemble(GB+Ridge),False
-2026-05,서초구,1136,Ensemble(GB+Ridge),False
+2026-05,서초구,1137,Ensemble(GB+Ridge),False
 2026-05,성동구,681,Ensemble(GB+Ridge),False
-2026-05,성북구,989,Ensemble(GB+Ridge),False
+2026-05,성북구,990,Ensemble(GB+Ridge),False
 2026-05,송파구,1321,Ensemble(GB+Ridge),False
 2026-05,양천구,1173,Ensemble(GB+Ridge),False
 2026-05,영등포구,1099,Ensemble(GB+Ridge),False
@@ -124,7 +124,7 @@
 2026-05,종로구,735,Ensemble(GB+Ridge),False
 2026-05,중구,772,Ensemble(GB+Ridge),False
 2026-05,중랑구,1019,Ensemble(GB+Ridge),False
-2026-06,강남구,1394,Ensemble(GB+Ridge),False
+2026-06,강남구,1395,Ensemble(GB+Ridge),False
 2026-06,강동구,1122,Ensemble(GB+Ridge),False
 2026-06,강북구,1024,Ensemble(GB+Ridge),False
 2026-06,강서구,1215,Ensemble(GB+Ridge),False
@@ -147,5 +147,5 @@
 2026-06,용산구,647,Ensemble(GB+Ridge),False
 2026-06,은평구,1077,Ensemble(GB+Ridge),False
 2026-06,종로구,746,Ensemble(GB+Ridge),False
-2026-06,중구,772,Ensemble(GB+Ridge),False
+2026-06,중구,773,Ensemble(GB+Ridge),False
 2026-06,중랑구,1017,Ensemble(GB+Ridge),False
