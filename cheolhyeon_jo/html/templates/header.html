@@ -1,14 +1,3 @@
-{# 공통 헤더 : 실시간_병상관제_v1 헤더 규격 기준 #}
-{# 페이지에서 {% set %} 으로 문구 변경 가능 : topbar_text, topbar_icon, header_icon, header_subtitle, active_page #}
-
-<div class="bg-red-600 text-white px-5 py-2 text-xs font-bold shadow-sm">
-    <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
-        <span><i class="fa-solid {{ topbar_icon | default('fa-tower-broadcast') }} text-yellow-300 mr-2"></i>
-            {{ topbar_text | default('실시간 응급실 가용 병상') }}
-        </span>
-    </div>
-</div>
-
 <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-4 shadow-sm">
     <div class="max-w-[1600px] mx-auto flex flex-wrap justify-between items-center gap-4">
         <a href="/" class="flex items-center gap-3">
@@ -17,7 +6,7 @@
             </div>
             <div>
                 <h1 class="font-black text-lg tracking-tight text-slate-900">
-                    <span class="text-red-600">SEOUL EMERGENCY HUB</span>
+                    <span class="text-slate-900">SEOUL EMERGENCY HUB</span>
                 </h1>
                 <p class="text-xs text-slate-500 font-bold">{{ header_subtitle | default('응급실 가용병상 조회 및 위험도 모니터링 • 갱신 주기 : 1H') }}</p>
             </div>

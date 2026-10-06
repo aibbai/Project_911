@@ -24,11 +24,28 @@ function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// 전화번호 형식 통일 (02-XXX-XXXX 또는 02-XXXX-XXXX)
+const TEL_PATTERN = /^0\d{1,2}[\-)\s.]\d{3,4}[\-)\s.]\d{4}$/;
+
+function formatTel(tel) {
+    const raw = String(tel ?? '').trim();
+    let num = raw.replace(/\D/g, '');                 // 숫자만 남기기 ('-', 공백, 괄호 제거)
+    if (num.startsWith('02')) num = num.slice(2);      // 지역번호 02 제거
+
+    // 1588·1577 같은 대표번호는 지역번호 없이 표시
+    if (/^1[5-9]\d{6}$/.test(num)) return `${num.slice(0, 4)}-${num.slice(4)}`;
+
+    if (num.length !== 7 && num.length !== 8) return raw;   // 서울 번호가 아니면 원래 값 그대로
+
+    const formatted = `02-${num.slice(0, -4)}-${num.slice(-4)}`;
+    return TEL_PATTERN.test(formatted) ? formatted : raw;
+}
+
 const HOSPITAL_NAME_REMOVE = [
     '학교법인', '의료법인', '재단법인', '가톨릭학원', '고려중앙학원','학교 ','학교',
     '풍산의료재단', '한전의료재단', '성화의료재단', '동신의료재단', '성애의료재단',
     '성심의료재단', '서울효천의료재단', '아산사회복지재단', '한국보훈복지의료공단','서울특별시',
-    '가톨릭대학교', '인제대학교', '연세대학교의과대학', '한림대학교', '한국원자력의학원', '의과대학부속',
+    '학교', '대학교의과대학', '한국원자력의학원', '의과대학부속',
 ];
 const HOSPITAL_NAME_REGEX = new RegExp(HOSPITAL_NAME_REMOVE.join('|'), 'g');
 
@@ -169,7 +186,7 @@ function hospitalRow(h, showDistrict) {
     const bedText = hRisk !== 'unknown' ? `${fmt(Math.max(0, b))} 석` : '확인불가';
     const tag = showDistrict && h.From_District
         ? `<span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mr-1">${esc(h.From_District)}</span>` : '';
-    const tel = h.Tel ? `<div class="text-xs text-slate-500 mt-1">☎ ${esc(h.Tel)}</div>` : '';
+    const tel = h.Tel ? `<div class="text-xs text-slate-500 mt-1">☎ ${esc(formatTel(h.Tel))}</div>` : '';
     const staleTag = h.Is_Stale ? ' · 24시간 이상 미갱신' : '';
 
     return `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -186,16 +203,35 @@ function hospitalRow(h, showDistrict) {
     </div>`;
 }
 
+// 실시간 정보 미제공 병원 전화번호 (API에 번호가 없을 때 사용)
+const STATIC_HOSPITAL_TEL = {
+    '대한병원': '02-992-4444',
+    '서울현대병원': '02-902-9119',
+    '강북으뜸병원': '1522-1746',
+    '신촌연세병원': '02-337-7582',
+};
+
+// 병원 이름으로 전화번호 찾기 (띄어쓰기·법인명 차이 무시)
+function staticHospitalTel(h) {
+    if (h.Tel) return h.Tel;
+    const name = String(h.Hospital_Name || '').replace(/\s/g, '');
+    const key = Object.keys(STATIC_HOSPITAL_TEL).find(k => name.includes(k));
+    return key ? STATIC_HOSPITAL_TEL[key] : '';
+}
+
 function staticErHospitalRow(h) {
     const beds = Number(h.ER_Beds);
     const bedText = Number.isFinite(beds) ? `${fmt(beds)} 석` : '확인불가';
+    const telValue = staticHospitalTel(h);
+    const tel = telValue ? `<div class="text-xs text-slate-500 mt-1">☎ ${esc(formatTel(telValue))}</div>` : '';
     return `<div class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200">
         <div class="flex justify-between items-start gap-3">
             <div class="min-w-0 flex-1">
                 <b class="block text-[17px] text-slate-900 leading-6 truncate" title="${esc(cleanHospitalName(h.Hospital_Name || '병원'))}">${esc(cleanHospitalName(h.Hospital_Name || '병원'))}</b>
+                ${tel}
             </div>
             <div class="text-right shrink-0">
-                <b class="text-xs text-indigo-700 whitespace-nowrap">응급실 병상 ${bedText}</b>
+                <b class="text-xs text-indigo-700 whitespace-nowrap">응급실 병상 총 ${bedText}</b>
                 <div class="text-xs text-slate-500 mt-1 whitespace-nowrap">실시간 가용병상: 확인 불가 · API 미제공</div>
             </div>
         </div>
@@ -317,4 +353,22 @@ function filterRealtime() {
         '<div class="col-span-full text-center py-12 text-slate-400 font-bold">현재 필터 조건과 일치하는 실시간 병상 데이터가 없습니다.</div>';
 }
 
-window.addEventListener('load', () => loadRealtime());
+// 카드·검색창·드롭다운 이벤트 연결
+function bindRealtimeEvents() {
+    document.getElementById('risk-card-high')
+        ?.addEventListener('click', () => showDistrictsByRisk('high'));      // 위험
+    document.getElementById('risk-card-medium')
+        ?.addEventListener('click', () => showDistrictsByRisk('medium'));    // 주의
+
+    document.getElementById('realtime-search-input')
+        ?.addEventListener('keyup', filterRealtime);
+    document.getElementById('realtime-zone-filter')
+        ?.addEventListener('change', filterRealtime);
+    document.getElementById('realtime-risk-filter')
+        ?.addEventListener('change', filterRealtime);
+}
+
+window.addEventListener('load', () => {
+    bindRealtimeEvents();
+    loadRealtime();
+});
