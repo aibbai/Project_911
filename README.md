@@ -1,11 +1,12 @@
-# 1st PROJECTS
-
+<div><img src=https://notion-emojis.s3-us-west-2.amazonaws.com/prod/svg-twitter/1f691.svg></div>
+# 응급의료 대응 최적화 프로젝트https://github.com/aibbai/Project_911
+> 1st PROJECTS
 > 프로젝트 119
 
 ## 📌 프로젝트 개요
 
 - **프로젝트명**: 프로젝트 119
-- **개발 기간**: 2026.09.28 ~ 2025.10.11 (2주)
+- **개발 기간**: 2026.09.28 ~ 2025.10.11 (2주)https://github.com/aibbai/Project_911
 - **개발 인원**: 4명
 - **주요 기술**:  
    <div>
