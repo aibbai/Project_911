@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}스마트 응급의료 데이터 센터{% endblock %}</title>
+
+    <!-- 공통 리소스 (모든 페이지) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        /* ---------- 메뉴 색 : 메인 카드 색과 연결 (분석·예측 = 인디고, 병상 관제 = 에메랄드) ---------- */
+        :root {
+            --hub-predict: #6366f1;        /* indigo-500 : 흰 배경용 */
+            --hub-predict-light: #a5b4fc;  /* indigo-300 : 메인 카드 그래프 선 색 */
+            --hub-predict-dark: #312e81;   /* indigo-900 : 메인 카드 배경 색 */
+            --hub-beds: #059669;           /* emerald-600 : 흰 배경용 */
+            --hub-beds-light: #a7f3d0;     /* emerald-200 : 메인 카드 병상 그림 색 */
+            --hub-beds-dark: #065f46;      /* emerald-800 : 메인 카드 배경 색 */
+        }
+        /* 헤더 메뉴 아이콘 (선택 안 됨 → 진한 색 / 선택됨(검은 배경) → 밝은 색) */
+        header nav a[href="/analysis"] i { color: var(--hub-predict); }
+        header nav a[href="/beds"] i { color: var(--hub-beds); }
+        header nav a[href="/analysis"].bg-slate-900 i { color: var(--hub-predict-light); }
+        header nav a[href="/beds"].bg-slate-900 i { color: var(--hub-beds-light); }
+        /* 마우스를 올리면 테두리·글자도 같은 색 */
+        header nav a[href="/analysis"]:not(.bg-slate-900):hover { border-color: var(--hub-predict); color: var(--hub-predict-dark); }
+        header nav a[href="/beds"]:not(.bg-slate-900):hover { border-color: var(--hub-beds); color: var(--hub-beds-dark); }
+        /* 헤더 왼쪽 로고 상자 : 페이지 아이콘에 따라 메인 카드 색으로 */
+        header a[href="/"] > div:has(> .fa-chart-line) { background-image: linear-gradient(135deg, var(--hub-predict), var(--hub-predict-dark)); }
+        header a[href="/"] > div:has(> .fa-bed-pulse) { background-image: linear-gradient(135deg, #10b981, var(--hub-beds-dark)); }
+        /* 로고 글자(SEOUL EMERGENCY HUB)도 로고 상자와 같은 그라데이션 */
+        header a[href="/"]:has(.fa-chart-line) h1,
+        header a[href="/"]:has(.fa-chart-line) h1 span {
+            background-image: linear-gradient(135deg, var(--hub-predict), var(--hub-predict-dark));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        header a[href="/"]:has(.fa-bed-pulse) h1,
+        header a[href="/"]:has(.fa-bed-pulse) h1 span {
+            background-image: linear-gradient(135deg, #10b981, var(--hub-beds-dark));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        /* 헤더 위 빨간 안내 띠 숨김 */
+        body > div.bg-red-600:has(+ header) { display: none; }
+
+        /* ---------- 챗봇 창 (오른쪽 아래) ---------- */
+        #cb-btn {
+            position: fixed; right: 24px; bottom: 24px; z-index: 9998;
+            width: 60px; height: 60px; border: 0; border-radius: 50%;
+            background: #059669; color: #fff; font-size: 24px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(5, 150, 105, .35); transition: transform .2s;
+        }
+        #cb-btn:hover { transform: scale(1.06); }
+        #cb-panel {
+            position: fixed; right: 24px; bottom: 96px; z-index: 9999;
+            width: 370px; height: 540px; max-height: calc(100vh - 120px);
+            display: none; flex-direction: column; overflow: hidden;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, .2);
+            font-family: 'Pretendard', sans-serif; color: #1e293b;
+        }
+        #cb-panel.open { display: flex; }
+        .cb-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #0f172a; color: #fff; }
+        .cb-head b { font-size: 15px; }
+        .cb-head button { margin-left: auto; background: none; border: 0; color: #cbd5e1; font-size: 18px; cursor: pointer; }
+        #cb-panel * { box-sizing: border-box; }
+        .cb-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+        .cb-chip {
+            flex-shrink: 0; font-size: 12px; font-weight: 600; border-radius: 999px;
+            border: 1px solid #cbd5e1; background: #f8fafc; padding: 5px 10px; cursor: pointer; font-family: inherit;
+        }
+        .cb-chip:hover { border-color: #059669; color: #047857; }
+        #cb-loc { background: #ecfdf5; border-color: #10b981; color: #047857; }
+        .cb-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .cb-links a {
+            font-size: 12px; font-weight: 600; text-decoration: none; color: #047857;
+            border: 1px solid #10b981; border-radius: 999px; padding: 3px 10px; background: #f0fdf4;
+        }
+        #cb-log { flex: 1; overflow-y: auto; padding: 14px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .cb-msg { max-width: 85%; padding: 9px 12px; border-radius: 14px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: keep-all; }
+        .cb-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; border-top-left-radius: 4px; }
+        .cb-msg.me { align-self: flex-end; background: #059669; color: #fff; border-top-right-radius: 4px; }
+        .cb-msg small { display: block; margin-top: 4px; font-size: 10px; color: #94a3b8; }
+        .cb-input { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #e2e8f0; }
+        .cb-input textarea {
+            flex: 1; resize: none; height: 40px; padding: 9px 12px; font-size: 13px; font-family: inherit;
+            border: 1px solid #cbd5e1; border-radius: 12px; outline: none;
+        }
+        .cb-input textarea:focus { border-color: #059669; }
+        .cb-input button { width: 44px; border: 0; border-radius: 12px; background: #059669; color: #fff; cursor: pointer; }
+        .cb-input button:disabled { background: #94a3b8; cursor: wait; }
+        @media (max-width: 480px) {
+            #cb-panel { right: 8px; left: 8px; width: auto; bottom: 88px; }
+            #cb-btn { right: 16px; bottom: 16px; }
+        }
+    </style>
+
+    <!-- 페이지별 CSS / 라이브러리 -->
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {% block header %}
+        {% include 'header.html' %}
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+
+    {% block footer %}
+        {% include 'footer.html' %}
+    {% endblock %}
+
+    <!-- 챗봇 창 : 페이지에서 chatbot 블록을 빈 블록으로 덮어쓰면 숨김 / 서버에서 챗봇을 끄면(Vercel) 숨김 -->
+    {% block chatbot %}{% if chatbot_enabled %}
+    <button id="cb-btn" type="button" title="응급의료 챗봇"><i class="fa-solid fa-comment-medical"></i></button>
+
+    <div id="cb-panel">
+        <div class="cb-head">
+            <i class="fa-solid fa-truck-medical"></i>
+            <b>응급의료 안내 챗봇</b>
+            <button type="button" id="cb-close" title="닫기"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="cb-bar">
+            <button type="button" class="cb-chip" id="cb-loc">📍</button>
+            <button type="button" class="cb-chip" data-fill=" 응급실 알려줘">🏥응급실 찾기</button>
+            <button type="button" class="cb-chip" data-fill=" 이송 건수 예측">이송 건수 예측</button>
+            <button type="button" class="cb-chip" data-fill=" 생활인구 예측">생활인구 예측</button>
+        </div>
+
+        <div id="cb-log"></div>
+
+        <div class="cb-input">
+            <textarea id="cb-text" placeholder="예) 역삼동 이송 예측 / 테헤란로 152 응급실" maxlength="300"></textarea>
+            <button type="button" id="cb-send" title="보내기"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const $ = id => document.getElementById(id);
+        const panel = $('cb-panel'), log = $('cb-log'), text = $('cb-text'), send = $('cb-send');
+        const NOTE = { exaone: 'EXAONE · API 데이터 기반', summary: 'API 데이터 요약', location: '실시간 병상 · 위치 기준' };
+        const GREETING = '안녕하세요! 서울시 응급의료 안내 챗봇입니다.\n구·동 이름을 넣으면 이송 수요 예측을,\n'
+                       + '주소를 넣거나 📍 버튼을 누르면 가장 가까운 응급실을 알려드립니다.\n예) 역삼동 이송 예측 / 테헤란로 152 응급실';
+
+        // 메시지 추가 (textContent → 태그가 그대로 글자로 보임)
+        function add(who, msg, note, links) {
+            const box = document.createElement('div');
+            box.className = 'cb-msg ' + who;
+            box.textContent = msg;
+            if (links && links.length) {
+                const wrap = document.createElement('div');
+                wrap.className = 'cb-links';
+                links.filter(l => /^https:\/\//.test(l.url)).forEach(l => {
+                    const a = document.createElement('a');
+                    a.href = l.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = l.label;
+                    wrap.appendChild(a);
+                });
+                box.appendChild(wrap);
+            }
+            if (note) { const s = document.createElement('small'); s.textContent = note; box.appendChild(s); }
+            log.appendChild(box);
+            log.scrollTop = log.scrollHeight;
+            return box;
+        }
+
+        // 서버에 보내고 답변 표시 (일반 질문 · 위치 질문 공통)
+        async function post(url, body, wait) {
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                wait.remove();
+                if (data.source === 'need_location') return locate();  // "가까운 응급실" → 위치 요청
+                add('bot', data.answer || data.error || '답변이 없습니다.', NOTE[data.source], data.links);
+            } catch (e) {
+                wait.remove();
+                add('bot', '서버에 연결하지 못했습니다. Flask 서버가 실행 중인지 확인해 주세요.');
+            }
+            send.disabled = false;
+            text.focus();
+        }
+
+        // 📍 버튼 → 가까운 응급실
+        function findNearest() {
+            if (send.disabled) return;
+            add('me', '가까운 응급실 찾아줘');
+            text.value = '';
+            locate();
+        }
+
+        // 브라우저 위치 → 서버에 보내 가까운 응급실 받기
+        function locate() {
+            if (!window.isSecureContext || !navigator.geolocation) {
+                add('bot', '이 주소에서는 위치를 사용할 수 없습니다.\nhttps 또는 127.0.0.1(localhost)로 접속하거나, 주소를 입력해 주세요.\n예) 테헤란로 152 응급실');
+                send.disabled = false;
+                return;
+            }
+            send.disabled = true;
+            const wait = add('bot', '현재 위치를 확인하는 중입니다…');
+
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    wait.textContent = '가까운 응급실을 찾는 중입니다…';
+                    post('/api/chat/nearest', { lat: pos.coords.latitude, lon: pos.coords.longitude }, wait);
+                },
+                err => {
+                    wait.remove();
+                    add('bot', err.code === 1
+                        ? '위치 권한이 거부되었습니다.\n주소창 왼쪽 아이콘에서 위치 권한을 허용한 뒤 다시 눌러 주세요.'
+                        : '위치를 확인하지 못했습니다. 주소를 입력해 주세요.\n예) 테헤란로 152 응급실');
+                    send.disabled = false;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        function ask(question) {
+            question = question.trim();
+            if (!question || send.disabled) return;
+            add('me', question);
+            text.value = '';
+            send.disabled = true;
+            post('/api/chat', { message: question }, add('bot', '답변을 만드는 중입니다…'));
+        }
+
+        $('cb-btn').onclick = () => {
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                if (!log.children.length) add('bot', GREETING);
+                text.focus();
+            }
+        };
+        $('cb-close').onclick = () => panel.classList.remove('open');
+        $('cb-loc').onclick = () => findNearest();
+        send.onclick = () => ask(text.value);
+        text.onkeydown = e => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(text.value); }
+        };
+        // 빠른 질문 : 입력창에 문장을 넣고, 맨 앞에 주소·구·동을 쓰도록 커서를 둠
+        document.querySelectorAll('.cb-chip[data-fill]').forEach(chip => {
+            chip.onclick = () => {
+                text.value = chip.dataset.fill;
+                text.focus();
+                text.setSelectionRange(0, 0);
+            };
+        });
+    })();
+    </script>
+    {% endif %}{% endblock %}
+
+    <!-- 페이지별 JS -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
