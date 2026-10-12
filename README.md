@@ -1,18 +1,18 @@
 <img src=https://notion-emojis.s3-us-west-2.amazonaws.com/prod/svg-twitter/1f691.svg width="50">  
 
 # 응급의료 대응 최적화 프로젝트
-> 선정한 서울시 자치구의 구급통계·생활인구·응급의료시설 데이터를 활용해 지역별 구급 수요를 분석하고, 미래 수요 예측과 실시간 응급실 정보를 연계하는 AI 프로젝트 
+> 서울시 자치구의 구급통계·생활인구·응급의료시설 데이터를 활용해, 자치구별 구급 수요를 분석하고 미래 수요 예측과 실시간 응급실 정보를 연계하는 AI 프로젝트 
 
 
 ## 📑 목차
-[배경 및 문제 정의](url)<br>
-[프로젝트 목표](url)<br>
-[프로젝트 소개](url)<br>
-[데이터 수집 및 분석](url)<br>
-[모델 개발 및 성능 평가](url)<br>
-[웹 서비스 구현](url)<br>
-[프로젝트 결론](url)<br>
-[활용 데이터](url)<br>
+[배경 및 문제 정의](https://github.com/aibbai/Project_911#-%EB%B0%B0%EA%B2%BD-%EB%B0%8F-%EB%AC%B8%EC%A0%9C-%EC%A0%95%EC%9D%98)<br>
+[프로젝트 목표](https://github.com/aibbai/Project_911#-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EB%AA%A9%ED%91%9C)<br>
+[프로젝트 소개](https://github.com/aibbai/Project_911#-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%86%8C%EA%B0%9C)<br>
+[데이터 수집 및 분석](https://github.com/aibbai/Project_911#%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%88%98%EC%A7%91-%EB%B0%8F-%EB%B6%84%EC%84%9D)<br>
+[모델 개발 및 성능 평가](https://github.com/aibbai/Project_911#-%EB%AA%A8%EB%8D%B8-%EA%B0%9C%EB%B0%9C-%EB%B0%8F-%EC%84%B1%EB%8A%A5-%ED%8F%89%EA%B0%80)<br>
+[웹 서비스 구현](https://github.com/aibbai/Project_911#-%EC%9B%B9-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%ED%98%84)<br>
+[프로젝트 결론](https://github.com/aibbai/Project_911#-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B2%B0%EB%A1%A0)<br>
+[활용 데이터](https://github.com/aibbai/Project_911#-%ED%99%9C%EC%9A%A9-%EB%8D%B0%EC%9D%B4%ED%84%B0)<br>
 
 ## 🎯 배경 및 문제 정의
 
