@@ -1,6 +1,6 @@
-# 1st PROJECTS
+# 🎯 1st PROJECTS
 
-> 프로젝트 119
+> 프로젝트 911 (ctrl+shift+v)
 
 ## 📌 프로젝트 개요
 
