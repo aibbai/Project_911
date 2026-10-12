@@ -1,3 +1,6 @@
+/* 브라우저 강제 다크 모드 차단 (삼성 인터넷·크롬 자동 다크) */
+:root { color-scheme: only light; }
+
 /* 실시간 병상관제와 같은 밝은 카드 톤 */
     :root {
         --card-bg: #ffffff;
@@ -399,6 +402,9 @@
     @media (max-width: 640px) {
         .kpi-grid { grid-template-columns: 1fr; }
         .controls-bar, .control-group { flex-direction: column; align-items: stretch; }
+        /* 월 선택 탭 : 3칸 x 2줄 */
+        #monthTabs.tab-group { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        #monthTabs .tab-btn { width: 100%; text-align: center; }
         .page-head h2 { font-size: 24px; }
         .ai-model-section { padding: 20px; }
         .chart-container { height: 280px; }
@@ -537,8 +543,6 @@
 .predict-inline-28 { max-height: 420px; }
 .predict-inline-29 { margin-bottom: 10px; }
 .predict-inline-32 { font-weight: 700; white-space: nowrap; }
-.predict-inline-33 { color:' + (s.change >= 0 ? UP_COLOR : DOWN_COLOR) + '; }
-.predict-inline-34 { background: rgba(220, 38, 38, ' + (0.06 + level * 0.32).toFixed(2) + '); }
 .predict-inline-35 { font-weight: 700; }
 .predict-inline-36 { font-weight: 800; }
 

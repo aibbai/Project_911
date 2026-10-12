@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 <div><img src=https://notion-emojis.s3-us-west-2.amazonaws.com/prod/svg-twitter/1f691.svg></div>
 # 응급의료 대응 최적화 프로젝트https://github.com/aibbai/Project_911
 > 1st PROJECTS
 > 프로젝트 119
+=======
+# 🎯 1st PROJECTS
+
+> 프로젝트 911 (ctrl+shift+v)
+>>>>>>> 3a8aa0913a969502da5c7107bab7d6902e53e981
 
 ## 📌 프로젝트 개요
 

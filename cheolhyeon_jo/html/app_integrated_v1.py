@@ -1,22 +1,9 @@
 """
-서울 응급의료 허브 v1 - 웹 공개용 서버
-
-데이터 구조
-- 일반 23개 구: 공공데이터포털 NMC 실시간 응급실 가용병상
-- 강북구·마포구: 실시간 가용병상 API 미제공 예외 UI용 정적 응급실 병상 수
-- 강북구·마포구에는 인접 자치구의 실시간 가용병상도 함께 안내
-
-화면 구조
+서울 응급의료 허브 v2 - 웹 공개용 서버 (v1 단축판, 기능·API 응답 동일)
+- 23개 구: NMC 실시간 응급실 가용병상 / 강북·마포: 정적 병상 수 + 인접 구 안내
 - templates/base.html 을 main·real_time·predict.html 이 상속
-- header.html·footer.html 은 base.html 에서 include
 """
-import os
-import unicodedata
-import json
-import re
-import time
-import threading
-import webbrowser
+import os, re, json, time, shutil, threading, webbrowser, unicodedata
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
@@ -25,195 +12,144 @@ from flask import Flask, jsonify, request, render_template, send_from_directory,
 from jinja2 import BaseLoader, TemplateNotFound
 from dotenv import load_dotenv
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# py 실행: 파일 폴더 / 노트북 실행: 현재 폴더
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
-
-# 기본 static 경로는 끄고, 아래 static_files()에서 직접 찾음
-app = Flask(__name__, static_folder=None)
+app = Flask(__name__, static_folder=None, root_path=BASE_DIR)   # static 은 아래 static_files()에서 직접 찾음
 app.json.ensure_ascii = False
 
 
 # ------------------------------------------------------------
 # 1. 환경변수
 # ------------------------------------------------------------
+def env(name, default=""):
+    return os.getenv(name, str(default)).strip()
+
 def env_bool(name, default):
-    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "y", "on"}
+    return env(name, default).lower() in {"1", "true", "yes", "y", "on"}
 
-
-DATA_GO_KR_KEY = (
-    os.getenv("DATA_GO_KR_KEY", "").strip()
-    or os.getenv("DATA_GO_KR_SERVICE_KEY", "").strip()
-)
-
-# 0.0.0.0 = 같은 와이파이/외부에서 접속 허용, 127.0.0.1 = 내 PC만
-HOST = os.getenv("APP_HOST", "0.0.0.0")
-# 클라우드(Render 등)는 PORT 환경변수를 자동으로 넣어 줌
-PORT = int(os.getenv("PORT") or os.getenv("APP_PORT", "5000"))
-AUTO_OPEN_BROWSER = env_bool("AUTO_OPEN_BROWSER", False)  # bat 실행 시 1로 켜짐
-
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "").strip()
-START_SCHEDULER = env_bool("START_SCHEDULER", True)
-AUTO_REFRESH_MINUTES = int(os.getenv("AUTO_REFRESH_MINUTES", "60"))
-
-STALE_HOURS = int(os.getenv("STALE_HOURS", "24"))
-FULL_REFRESH_LIMIT = int(os.getenv("FULL_REFRESH_LIMIT", "3"))
+DATA_GO_KR_KEY = env("DATA_GO_KR_KEY") or env("DATA_GO_KR_SERVICE_KEY")
+HOST = env("APP_HOST", "0.0.0.0")                       # 0.0.0.0 = 외부 접속 허용
+PORT = int(env("PORT") or env("APP_PORT", 5000))        # 클라우드는 PORT 자동 지정
+AUTO_OPEN_BROWSER = env_bool("AUTO_OPEN_BROWSER", False)
+ADMIN_TOKEN = env("ADMIN_TOKEN")
+ON_VERCEL = bool(env("VERCEL"))                          # Vercel 서버에서 자동으로 1
+START_SCHEDULER = env_bool("START_SCHEDULER", not ON_VERCEL)   # Vercel: 스케줄러 없음
+REFRESH_ON_REQUEST = env_bool("REFRESH_ON_REQUEST", ON_VERCEL)   # Vercel: 스케줄러 대신 요청 시 갱신
+CHATBOT_ON = env_bool("CHATBOT", not ON_VERCEL)          # Vercel: 챗봇 끔
+AUTO_REFRESH_MINUTES = int(env("AUTO_REFRESH_MINUTES", 60))
+STALE_HOURS = int(env("STALE_HOURS", 24))
+FULL_REFRESH_LIMIT = int(env("FULL_REFRESH_LIMIT", 3))
+DAILY_LIMIT = int(env("DAILY_API_LIMIT", 100))
 API_CACHE_SECONDS = 60 * 60
-SNAPSHOT_SCHEMA = 1  # v1 캐시 구조
+SNAPSHOT_SCHEMA = 1
 
-# 서비스별 일일 호출 한도
-DAILY_LIMITS = {
-    "data_go_kr": int(os.getenv("DAILY_API_LIMIT", "100")),
-}
-
-# 캐시 json 을 쓰는 폴더 (클라우드에서 쓰기 가능한 폴더로 바꿀 수 있음)
-DATA_DIR = os.getenv("DATA_DIR", BASE_DIR)
+DATA_DIR = env("DATA_DIR") or ("/tmp/hub" if ON_VERCEL else BASE_DIR)   # Vercel: /tmp 만 쓰기 가능
 os.makedirs(DATA_DIR, exist_ok=True)
+SNAPSHOT_FILE, REFRESH_STATE_FILE, API_USAGE_FILE = [
+    os.path.join(DATA_DIR, f) for f in ("realtime_beds_cache.json", "refresh_state.json", "api_usage.json")]
 
-SNAPSHOT_FILE = os.path.join(DATA_DIR, "realtime_beds_cache.json")
-REFRESH_STATE_FILE = os.path.join(DATA_DIR, "refresh_state.json")
-API_USAGE_FILE = os.path.join(DATA_DIR, "api_usage.json")
+# 저장 폴더가 따로면: 함께 올린 캐시를 첫 화면용으로 복사
+_seed = os.path.join(BASE_DIR, "realtime_beds_cache.json")
+if DATA_DIR != BASE_DIR and not os.path.isfile(SNAPSHOT_FILE) and os.path.isfile(_seed):
+    shutil.copy(_seed, SNAPSHOT_FILE)
 
-NIA_BASE_URL = "http://apis.data.go.kr/B552657/ErmctInfoInqireService"
+NIA_URL = "http://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire"
+BED_SOURCE = "NMC 실시간 병상 API (23개 구) + 강북·마포 정적 응급실 병상"
 
 
-# 파일을 찾을 기준 폴더: py 파일 폴더 + 그 상위 폴더
-SEARCH_ROOTS = [BASE_DIR, os.path.dirname(BASE_DIR)]
+# ------------------------------------------------------------
+# 2. 파일 찾기 · 화면 렌더링
+# ------------------------------------------------------------
+SEARCH_ROOTS = [BASE_DIR] if ON_VERCEL else [BASE_DIR, os.path.dirname(BASE_DIR)]   # Vercel: 상위 폴더 검색 안 함
 SKIP_DIRS = {".git", "__pycache__", "node_modules", "venv", ".venv", ".ipynb_checkpoints"}
 
-
 def loose_name(x):
-    """파일명 비교용: 자모 분리·대소문자·앞뒤 공백·' (1)'·'- 복사본'·중복 확장자 무시"""
+    """파일명 비교용: 자모·대소문자·' (1)'·'- 복사본'·중복 확장자 무시"""
     x = unicodedata.normalize("NFC", str(x)).strip().lower()
-    for ext in (".txt", ".htm", ".html", ".css", ".js"):
-        while x.endswith(ext + ext):            # a.html.html → a.html
-            x = x[: -len(ext)]
-    if x.endswith(".html.txt"):                  # a.html.txt → a.html
-        x = x[:-4]
-    x = re.sub(r"\s*(\(\d+\)|-\s*복사본)(?=\.[a-z]+$)", "", x)  # a (1).html → a.html
-    return x
-
+    x = re.sub(r"(\.(?:txt|html?|css|js))\1+$", r"\1", x)      # a.html.html → a.html
+    x = re.sub(r"\.html\.txt$", ".html", x)                      # a.html.txt  → a.html
+    return re.sub(r"\s*(\(\d+\)|-\s*복사본)(?=\.[a-z]+$)", "", x)  # a (1).html  → a.html
 
 def walk_files(max_depth=3):
-    """검색 기준 폴더 아래 파일 경로를 하나씩 돌려줌"""
     for root in SEARCH_ROOTS:
         for folder, dirs, files in os.walk(root):
-            dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
-            if folder[len(root):].count(os.sep) >= max_depth:
-                dirs[:] = []
+            too_deep = folder[len(root):].count(os.sep) >= max_depth
+            dirs[:] = [] if too_deep else [d for d in dirs if d not in SKIP_DIRS]
             for f in files:
                 yield os.path.join(folder, f)
 
-
 def find_file(*names, subfolders=("templates", "data", "")):
-    """1) 정해진 폴더 순서로 찾기  2) 없으면 하위 폴더에서 비슷한 이름까지 찾기"""
+    """1) 정해진 폴더에서 정확한 이름 → 2) 하위 폴더에서 비슷한 이름 (없으면 None)"""
     names = [n.strip() for n in names if n and n.strip()]
-    for root in SEARCH_ROOTS:
-        for sub in subfolders:
-            for name in names:
-                path = os.path.join(root, sub, name)
-                if os.path.isfile(path):
-                    return path
+    exact = (os.path.join(r, s, n) for r in SEARCH_ROOTS for s in subfolders for n in names)
+    found = next((p for p in exact if os.path.isfile(p)), None)
+    if found:
+        return found
     targets = {loose_name(n) for n in names}
-    for path in walk_files():
-        if loose_name(os.path.basename(path)) in targets:
-            return path
-    return os.path.join(BASE_DIR, "templates", names[0])
+    return next((p for p in walk_files() if loose_name(os.path.basename(p)) in targets), None)
 
+def first_existing(names):
+    return next((n for n in names if find_file(n)), None)
 
 def html_candidates():
-    """못 찾았을 때 안내용: 실제로 있는 html 파일 목록"""
     return sorted({p for p in walk_files() if p.lower().endswith((".html", ".htm", ".html.txt"))})[:30]
 
-
-# 서버 실행 후 파일을 옮겨도 되도록, 화면을 열 때마다 다시 찾음
-# 순서: .env 지정 파일 → base.html 상속 템플릿 → 예전 단독 HTML (백업용)
-def page_names(env_name, new_name, old_name):
-    custom = os.getenv(env_name, "").strip()
-    return tuple(n for n in (custom, new_name, old_name) if n)
-
+# 화면 파일 순서: .env 지정 → base.html 상속 템플릿 → 예전 단독 HTML
+def page_names(env_name, *defaults):
+    return tuple(n for n in (env(env_name), *defaults) if n)
 
 HOME_NAMES = page_names("HOME_FILE", "main.html", "SEOUL_EMERGENCY_HUB.html")
 BEDS_NAMES = page_names("BEDS_FILE", "real_time.html", "실시간_병상관제_v1.html")
 ANALYSIS_NAMES = page_names("ANALYSIS_FILE", "predict.html", "데이터분석_예측.html")
-
-# 화면 템플릿이 함께 쓰는 공통 조각
 SHARED_TEMPLATES = ("base.html", "header.html", "footer.html")
-
-# 예측 노트북(04_대시보드_예측연결)이 만든 대시보드 데이터
-# json 우선, 없으면 js 사용 / 다른 위치에 있으면 .env의 DASHBOARD_FILE에 전체 경로 지정
-DASHBOARD_NAMES = ("dashboard_data.json", "dashboard_data.js")
-DASHBOARD_SUBFOLDERS = ("outputs", "static", "data", "")
-
+DASHBOARD_NAMES = ("dashboard_data.json", "dashboard_data.js")   # 예측 노트북 결과 (json 우선)
 
 class FindFileLoader(BaseLoader):
-    """{% extends %}·{% include %} 파일도 find_file()로 찾는 템플릿 로더"""
-
+    """{% extends %}·{% include %} 도 find_file()로 찾는 로더 (html 수정 시 자동 반영)"""
     def get_source(self, environment, template):
         path = find_file(template)
-        if not os.path.isfile(path):
+        if not path:
             raise TemplateNotFound(template)
-        with open(path, "r", encoding="utf-8") as f:
-            source = f.read()
         mtime = os.path.getmtime(path)
-        # 파일이 바뀌면 다시 읽음 (서버 재시작 없이 html 수정 반영)
-        return source, path, lambda: os.path.isfile(path) and os.path.getmtime(path) == mtime
-
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read(), path, lambda: os.path.isfile(path) and os.path.getmtime(path) == mtime
 
 app.jinja_env.loader = FindFileLoader()
 app.jinja_env.auto_reload = True
-
+app.jinja_env.globals["chatbot_enabled"] = CHATBOT_ON   # base.html 챗봇 창 표시 여부
 
 @app.get("/static/<path:filename>", endpoint="static")
 def static_files(filename):
-    """static/ → static/css·js → 실행 폴더 → 하위 폴더 검색 순서로 css·js 찾기"""
     path = find_file(filename, os.path.basename(filename),
-                     subfolders=("static", os.path.join("static", "css"), os.path.join("static", "js"),
-                                 "outputs", ""))
-    if not os.path.isfile(path):
+                     subfolders=("static", "static/css", "static/js", "public/static",
+                                 "public/static/css", "public/static/js", "outputs", ""))
+    if not path:
         abort(404)
-    return send_from_directory(os.path.dirname(path), os.path.basename(path))
-
-
-def first_existing(names):
-    """후보 이름 중 실제로 있는 첫 파일 이름 (없으면 None)"""
-    for name in names:
-        if os.path.isfile(find_file(name)):
-            return name
-    return None
-
+    return send_from_directory(*os.path.split(path))
 
 def serve_html(names):
-    """화면 템플릿을 찾아 렌더링 (base·header·footer 상속 포함, url_for → 실제 css/js 경로)"""
     name = first_existing(names)
     if name is None:
-        return jsonify({"error": "HTML 파일 없음", "찾은_파일명": list(names),
-                        "검색한_폴더": SEARCH_ROOTS,
-                        "실제_있는_html": html_candidates()}), 404
+        return jsonify(error="HTML 파일 없음", 찾은_파일명=list(names), 검색한_폴더=SEARCH_ROOTS,
+                       실제_있는_html=html_candidates()), 404
     try:
         return render_template(name)
-    except TemplateNotFound as e:
-        # 화면 파일은 있는데 base.html / header.html / footer.html 이 없는 경우
-        return jsonify({"error": "공통 템플릿 파일 없음", "화면_파일": name,
-                        "없는_파일": e.name, "필요한_파일": list(SHARED_TEMPLATES),
-                        "실제_있는_html": html_candidates()}), 500
-
+    except TemplateNotFound as e:   # base·header·footer 가 없는 경우
+        return jsonify(error="공통 템플릿 파일 없음", 화면_파일=name, 없는_파일=e.name,
+                       필요한_파일=list(SHARED_TEMPLATES), 실제_있는_html=html_candidates()), 500
 
 def find_dashboard_file():
-    """대시보드 데이터 파일 경로 (없으면 None)"""
-    custom = os.getenv("DASHBOARD_FILE", "").strip()
+    custom = env("DASHBOARD_FILE")
     if custom:
         return custom if os.path.isfile(custom) else None
-    for name in DASHBOARD_NAMES:
-        path = find_file(name, subfolders=DASHBOARD_SUBFOLDERS)
-        if os.path.isfile(path):
-            return path
-    return None
-
+    paths = (find_file(n, subfolders=("outputs", "static", "data", "")) for n in DASHBOARD_NAMES)
+    return next((p for p in paths if p), None)
 
 def load_dashboard_data():
-    """json은 그대로, js는 'const DASHBOARD_DATA = {...};'에서 { } 부분만 읽기"""
+    """json 은 그대로, js 는 'const DASHBOARD_DATA = {...};' 의 { } 부분만"""
     path = find_dashboard_file()
-    if path is None:
+    if not path:
         return None, None
     with open(path, "r", encoding="utf-8-sig") as f:
         text = f.read()
@@ -223,63 +159,49 @@ def load_dashboard_data():
 
 
 # ------------------------------------------------------------
-# 2. 자치구 정보
+# 3. 자치구 정보
 # ------------------------------------------------------------
-ZONE_OF = {
-    "종로구": "도심권", "중구": "도심권", "용산구": "도심권",
-    "성동구": "동북권", "광진구": "동북권", "동대문구": "동북권", "중랑구": "동북권",
-    "성북구": "동북권", "강북구": "동북권", "도봉구": "동북권", "노원구": "동북권",
-    "은평구": "서북권", "서대문구": "서북권", "마포구": "서북권",
-    "양천구": "서남권", "강서구": "서남권", "구로구": "서남권", "금천구": "서남권",
-    "영등포구": "서남권", "동작구": "서남권", "관악구": "서남권",
-    "서초구": "동남권", "강남구": "동남권", "송파구": "동남권", "강동구": "동남권",
+ZONES = {
+    "도심권": "종로구 중구 용산구",
+    "동북권": "성동구 광진구 동대문구 중랑구 성북구 강북구 도봉구 노원구",
+    "서북권": "은평구 서대문구 마포구",
+    "서남권": "양천구 강서구 구로구 금천구 영등포구 동작구 관악구",
+    "동남권": "서초구 강남구 송파구 강동구",
 }
-SEOUL_GU_LIST = list(ZONE_OF.keys())
+ZONE_OF = {gu: zone for zone, gus in ZONES.items() for gu in gus.split()}
+SEOUL_GU_LIST = list(ZONE_OF)
 VALID_GU = set(SEOUL_GU_LIST)
 
-# 실시간 가용병상 API가 제공되지 않는 예외 자치구
+# 실시간 API 미제공 자치구 (병원명, 응급실 병상 수)
 STATIC_ER_HOSPITALS = {
-    "강북구": [
-        {"Hospital_Name": "의료법인성화의료재단 대한병원", "ER_Beds": 7},
-        {"Hospital_Name": "서울현대병원", "ER_Beds": 7},
-        {"Hospital_Name": "강북으뜸병원", "ER_Beds": 3},
-    ],
-    "마포구": [
-        {"Hospital_Name": "신촌연세병원", "ER_Beds": 6},
-    ],
+    "강북구": [("의료법인성화의료재단 대한병원", 7), ("서울현대병원", 7), ("강북으뜸병원", 3)],
+    "마포구": [("신촌연세병원", 6)],
 }
 STATIC_ER_GU = set(STATIC_ER_HOSPITALS)
 REALTIME_GU_LIST = [gu for gu in SEOUL_GU_LIST if gu not in STATIC_ER_GU]
 
-# 경계가 맞닿은 자치구 (가까운 순서)
-NEIGHBOR_GU = {
-    "마포구": ["서대문구", "은평구", "용산구", "영등포구", "강서구"],
-    "강북구": ["성북구", "도봉구", "노원구"],
-}
-NEARBY_PER_GU = 2   # 인접 구마다 보여줄 병원 수
-
-
-def neighbor_districts(gu):
-    """지정된 인접 구가 없으면 같은 권역 자치구 사용"""
-    if gu in NEIGHBOR_GU:
-        return NEIGHBOR_GU[gu]
-    return [g for g in SEOUL_GU_LIST if ZONE_OF[g] == ZONE_OF[gu] and g != gu]
+# 맞닿은 자치구 (가까운 순) - 없으면 같은 권역 사용
+NEIGHBOR_GU = {"마포구": ["서대문구", "은평구", "용산구", "영등포구", "강서구"],
+               "강북구": ["성북구", "도봉구", "노원구"]}
+NEARBY_PER_GU = 2
 
 
 # ------------------------------------------------------------
-# 3. 한국시간 · json 파일 도구
+# 4. 한국시간 · json 파일 도구
 # ------------------------------------------------------------
 KST = timezone(timedelta(hours=9))
 
-
 def now_kst():
-    # 클라우드 서버는 보통 UTC → 항상 한국시간으로 맞춤
-    return datetime.now(KST).replace(tzinfo=None)
-
+    return datetime.now(KST).replace(tzinfo=None)   # 클라우드(UTC)에서도 한국시간
 
 def today_key():
     return now_kst().strftime("%Y-%m-%d")
 
+def seconds_since(iso_text):
+    try:
+        return max(0, int((now_kst() - datetime.fromisoformat(iso_text)).total_seconds()))
+    except (TypeError, ValueError):
+        return None
 
 def read_json(path, default):
     try:
@@ -288,200 +210,120 @@ def read_json(path, default):
     except Exception:
         return default
 
-
 def write_json(path, data):
-    # 임시 파일에 쓴 뒤 교체 → 쓰는 도중 읽어도 깨지지 않음
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(path + ".tmp", "w", encoding="utf-8") as f:   # 임시 파일 → 교체 (읽는 중 깨짐 방지)
         json.dump(data, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, path)
+    os.replace(path + ".tmp", path)
+
+def daily_state(path, empty):
+    """오늘 날짜 파일이면 그대로, 아니면 초기값"""
+    data = read_json(path, {})
+    return data if data.get("date") == today_key() else {"date": today_key(), **empty}
 
 
 # ------------------------------------------------------------
-# 4. 일일 API 호출 횟수 관리
+# 5. 일일 API 호출 횟수 관리 · 재시도 요청
 # ------------------------------------------------------------
 class RateLimitExhausted(Exception):
     pass
 
-
-_api_usage_lock = threading.Lock()
-
-
-def _load_api_usage():
-    data = read_json(API_USAGE_FILE, {})
-    if data.get("date") != today_key():
-        return {"date": today_key(), "counts": {}}
-    counts = data.get("counts") or {}
-    if not counts and "count" in data:
-        # v6/v7 파일 형식 호환 (예전 count = 공공데이터포털 호출)
-        counts = {"data_go_kr": int(data["count"])}
-    return {"date": data["date"], "counts": counts}
-
+_usage_lock = threading.Lock()
 
 def api_usage_status():
-    with _api_usage_lock:
-        data = _load_api_usage()
-    result = {"date": data["date"]}
-    for service, limit in DAILY_LIMITS.items():
-        used = int(data["counts"].get(service, 0))
-        result[service] = {"used": used, "limit": limit, "remaining": max(0, limit - used)}
-    return result
+    with _usage_lock:
+        data = daily_state(API_USAGE_FILE, {"counts": {}})
+    used = int(data.get("counts", {}).get("data_go_kr", 0))
+    return {"date": data["date"],
+            "data_go_kr": {"used": used, "limit": DAILY_LIMIT, "remaining": max(0, DAILY_LIMIT - used)}}
 
-
-def reserve_api_call(service):
-    with _api_usage_lock:
-        data = _load_api_usage()
-        used = int(data["counts"].get(service, 0))
-        if used >= DAILY_LIMITS[service]:
-            raise RateLimitExhausted(f"{service} 일일 호출 제한 {DAILY_LIMITS[service]}회 소진")
-        data["counts"][service] = used + 1
+def reserve_api_call():
+    with _usage_lock:
+        data = daily_state(API_USAGE_FILE, {"counts": {}})
+        counts = data.setdefault("counts", {})
+        used = int(counts.get("data_go_kr", 0))
+        if used >= DAILY_LIMIT:
+            raise RateLimitExhausted(f"data_go_kr 일일 호출 제한 {DAILY_LIMIT}회 소진")
+        counts["data_go_kr"] = used + 1
         write_json(API_USAGE_FILE, data)
         return used + 1
 
-
-def request_get_with_retry(url, params, service, max_retries=3, base_delay=1.5,
-                           timeout=20, verify=True):
-    last_status = None
-    for attempt in range(max_retries):
-        wait = base_delay * (2 ** attempt)
+def get_with_retry(url, params, retries=3, delay=1.5):
+    """429·5xx·연결 오류 → 대기 후 재시도 (1.5초 → 3초 → 6초)"""
+    status = None
+    for i in range(retries):
+        wait, last = delay * 2 ** i, i == retries - 1
         try:
-            call_no = reserve_api_call(service)
-            print(f"[API:{service}] {call_no}/{DAILY_LIMITS[service]} {url.rsplit('/', 1)[-1]}")
-            r = requests.get(url, params=params, timeout=timeout, verify=verify)
+            print(f"[API] {reserve_api_call()}/{DAILY_LIMIT} {url.rsplit('/', 1)[-1]}")
+            r = requests.get(url, params=params, timeout=20)
         except (requests.ConnectionError, requests.Timeout):
-            if attempt == max_retries - 1:
+            if last:
                 raise
             time.sleep(wait)
             continue
-
         if r.status_code == 200:
             return r
-
-        last_status = r.status_code
-        if r.status_code == 429 or 500 <= r.status_code < 600:
-            if attempt == max_retries - 1:
-                break
+        status = r.status_code
+        if status != 429 and status < 500:
+            r.raise_for_status()
+        if not last:
             time.sleep(float(r.headers.get("Retry-After", wait)))
-            continue
-        r.raise_for_status()
-
-    if last_status == 429:
+    if status == 429:
         raise RateLimitExhausted("API 호출 한도 초과 (HTTP 429)")
-    raise RuntimeError(f"API 요청 실패 (HTTP {last_status})")
+    raise RuntimeError(f"API 요청 실패 (HTTP {status})")
 
 
 # ------------------------------------------------------------
-# 5. 응답 정리 함수
+# 6. NMC 실시간 병상 수집
 # ------------------------------------------------------------
 def parse_xml_items(xml_text):
     root = ET.fromstring(xml_text)
-
-    for code_tag, msg_tag in (("returnReasonCode", "returnAuthMsg"),
-                              ("resultCode", "resultMsg")):
+    for code_tag, msg_tag in (("returnReasonCode", "returnAuthMsg"), ("resultCode", "resultMsg")):
         code = root.findtext(f".//{code_tag}")
         if code not in (None, "00"):
             msg = root.findtext(f".//{msg_tag}") or ""
             if code == "22" or "LIMITED" in msg.upper():
                 raise RateLimitExhausted(msg)
             raise RuntimeError(f"API 오류 {code}: {msg}")
-
-    rows = [{child.tag: child.text for child in item} for item in root.findall(".//item")]
-    try:
-        total = int(root.findtext(".//totalCount", default="0") or 0)
-    except ValueError:
-        total = len(rows)
-    return rows, total
-
-
-def extract_gu(text):
-    if not text:
-        return None
-    m = re.search(r"([가-힣]+구)", str(text))
-    if m and m.group(1) in VALID_GU:
-        return m.group(1)
-    return None
-
+    return [{c.tag: c.text for c in item} for item in root.findall(".//item")]
 
 def parse_updated_at(value):
-    if not value:
-        return None
-    digits = re.sub(r"\D", "", str(value))
-    for fmt, length in (("%Y%m%d%H%M%S", 14), ("%Y%m%d%H%M", 12), ("%Y%m%d", 8)):
-        if len(digits) >= length:
+    digits = re.sub(r"\D", "", str(value or ""))
+    for fmt, n in (("%Y%m%d%H%M%S", 14), ("%Y%m%d%H%M", 12), ("%Y%m%d", 8)):
+        if len(digits) >= n:
             try:
-                return datetime.strptime(digits[:length], fmt)
+                return datetime.strptime(digits[:n], fmt)
             except ValueError:
                 pass
     return None
 
-
-def normalize_bed(raw):
+def to_hospital(x, gu):
+    """API 한 줄 → 병원 정보 (음수 병상 = 과밀 → 0 / 오래된 값 → 미확인)"""
     try:
-        raw_num = int(float(raw))
+        raw = int(float(x.get("hvec")))
     except (TypeError, ValueError):
-        return {"Available_Beds": None, "Beds_Raw": raw, "Is_Overcrowded": False}
-    # 음수 = 대기 환자가 병상보다 많음(과밀) → 가용 0 으로 표시
-    return {"Available_Beds": max(0, raw_num), "Beds_Raw": raw_num,
-            "Is_Overcrowded": raw_num < 0}
+        raw = None
+    updated = parse_updated_at(x.get("hvidate"))
+    stale = updated is None or now_kst() - updated > timedelta(hours=STALE_HOURS)
+    beds = None if stale or raw is None else max(0, raw)
+    return {"Hospital_ID": x.get("hpid"), "Hospital_Name": x.get("dutyName"), "Tel": x.get("dutyTel3"),
+            "Updated_At": x.get("hvidate"), "Ambulance_Available": x.get("hvamyn"), "District": gu,
+            "data_source": "existing_realtime_API", "Available_Beds": beds,
+            "Beds_Raw": x.get("hvec") if raw is None else raw,
+            "Is_Overcrowded": raw is not None and raw < 0, "Is_Stale": stale, "Beds_Unknown": beds is None}
 
-
-def finalize_hospital(row):
-    updated = parse_updated_at(row.get("Updated_At"))
-    is_stale = updated is None or now_kst() - updated > timedelta(hours=STALE_HOURS)
-    if is_stale:
-        row["Available_Beds"] = None
-    row["Is_Stale"] = is_stale
-    row["Beds_Unknown"] = row.get("Available_Beds") is None
-    return row
-
-
-def _pick(row, *names):
-    for name in names:
-        value = row.get(name)
-        if value not in (None, ""):
-            return value
-    return None
+def fetch_nia_realtime(gu):
+    params = {"serviceKey": DATA_GO_KR_KEY, "STAGE1": "서울특별시", "STAGE2": gu, "pageNo": 1, "numOfRows": 100}
+    return [to_hospital(x, gu) for x in parse_xml_items(get_with_retry(NIA_URL, params).text)]
 
 
 # ------------------------------------------------------------
-# 6. NMC 실시간 병상 (메인)
-# ------------------------------------------------------------
-def fetch_nia_realtime(district):
-    params = {
-        "serviceKey": DATA_GO_KR_KEY,
-        "STAGE1": "서울특별시",
-        "STAGE2": district,
-        "pageNo": 1,
-        "numOfRows": 100,
-    }
-    r = request_get_with_retry(f"{NIA_BASE_URL}/getEmrrmRltmUsefulSckbdInfoInqire",
-                               params, "data_go_kr")
-    rows, total = parse_xml_items(r.text)
-
-    hospitals = []
-    for x in rows:
-        hospitals.append(finalize_hospital({
-            "Hospital_ID": x.get("hpid"),
-            "Hospital_Name": x.get("dutyName"),
-            "Tel": x.get("dutyTel3"),
-            "Updated_At": x.get("hvidate"),
-            "Ambulance_Available": x.get("hvamyn"),
-            "District": district,
-            "data_source": "existing_realtime_API",
-            **normalize_bed(x.get("hvec")),
-        }))
-    return hospitals
-
-
-# ------------------------------------------------------------
-# 7. 전체 갱신 (서버 스케줄러 또는 관리자만 실행)
+# 7. 전체 갱신 (스케줄러 또는 관리자만 실행)
 # ------------------------------------------------------------
 _snapshot_lock = threading.Lock()
 _snap_mem = {"mtime": None, "data": {}}
 
-
 def load_snapshot():
-    # 파일이 바뀌었을 때만 다시 읽기
+    """캐시 파일이 바뀌었을 때만 다시 읽기"""
     try:
         mtime = os.path.getmtime(SNAPSHOT_FILE)
     except OSError:
@@ -491,77 +333,47 @@ def load_snapshot():
         _snap_mem.update(mtime=mtime, data=data if isinstance(data, dict) else {})
     return _snap_mem["data"]
 
-
-def snapshot_age_seconds(snapshot):
-    ts = snapshot.get("updated_at")
-    if not ts:
-        return None
-    try:
-        return max(0, int((now_kst() - datetime.fromisoformat(ts)).total_seconds()))
-    except ValueError:
-        return None
-
-
 def refresh_state():
-    state = read_json(REFRESH_STATE_FILE, {})
-    if state.get("date") != today_key():
-        state = {"date": today_key(), "full_refresh_count": 0, "last_refresh": None}
-    return state
-
+    return daily_state(REFRESH_STATE_FILE, {"full_refresh_count": 0, "last_refresh": None})
 
 def can_full_refresh():
+    state = refresh_state()
+    passed = seconds_since(state.get("last_refresh"))
     if not DATA_GO_KR_KEY:
         return False, "DATA_GO_KR_KEY 없음"
-    state = refresh_state()
     if state["full_refresh_count"] >= FULL_REFRESH_LIMIT:
         return False, "오늘 전체 갱신 횟수 소진"
-    if state.get("last_refresh"):
-        passed = (now_kst() - datetime.fromisoformat(state["last_refresh"])).total_seconds()
-        if passed < API_CACHE_SECONDS:
-            return False, f"다음 갱신까지 {int((API_CACHE_SECONDS - passed) // 60) + 1}분"
+    if passed is not None and passed < API_CACHE_SECONDS:
+        return False, f"다음 갱신까지 {(API_CACHE_SECONDS - passed) // 60 + 1}분"
     if api_usage_status()["data_go_kr"]["remaining"] < len(REALTIME_GU_LIST):
         return False, "공공데이터포털 일일 잔여 호출 부족"
     return True, None
-
 
 def refresh_all_districts(force=False):
     with _snapshot_lock:
         old = load_snapshot()
         ok, reason = can_full_refresh()
-        if not ok and not force:
+        if not (ok or force):
             return old, False, reason
 
-        old_districts = (old.get("districts", {})
-                         if old.get("schema") == SNAPSHOT_SCHEMA else {})
+        old_districts = old.get("districts", {}) if old.get("schema") == SNAPSHOT_SCHEMA else {}
         payloads, errors = {}, []
-
-        # 23개 구만 NMC 실시간 API 호출
         for gu in REALTIME_GU_LIST:
             try:
-                hospitals = fetch_nia_realtime(gu)
-                payloads[gu] = {"district": gu, "hospitals": hospitals}
-            except Exception as e:
+                payloads[gu] = {"district": gu, "hospitals": fetch_nia_realtime(gu)}
+            except Exception as e:   # 실패한 구는 이전 캐시 유지
                 errors.append(f"{gu}: {e}")
-                prev = dict(old_districts.get(gu, {"district": gu, "hospitals": []}))
-                prev["cache_stale"] = True
-                payloads[gu] = prev
+                payloads[gu] = {**old_districts.get(gu, {"district": gu, "hospitals": []}), "cache_stale": True}
+        payloads.update({gu: {"district": gu, "hospitals": []} for gu in STATIC_ER_GU})
 
-        # 강북·마포는 실시간 API 대신 별도 UI 데이터 사용
-        for gu in STATIC_ER_GU:
-            payloads[gu] = {"district": gu, "hospitals": []}
-
+        counts = [len(payloads[gu]["hospitals"]) for gu in REALTIME_GU_LIST]
         snapshot = {
-            "schema": SNAPSHOT_SCHEMA,
-            "updated_at": now_kst().isoformat(timespec="seconds"),
-            "source": "NMC 실시간 병상 API (23개 구) + 강북·마포 정적 응급실 병상",
-            "districts": payloads,
-            "errors": errors,
-            "stats": {
-                "realtime_district_count": len(REALTIME_GU_LIST),
-                "static_er_districts": sorted(STATIC_ER_GU),
-                "empty_realtime_districts": [g for g in REALTIME_GU_LIST if not payloads[g]["hospitals"]],
-                "max_district_count": max((len(payloads[g]["hospitals"]) for g in REALTIME_GU_LIST), default=0),
-            },
+            "schema": SNAPSHOT_SCHEMA, "updated_at": now_kst().isoformat(timespec="seconds"),
+            "source": BED_SOURCE, "districts": payloads, "errors": errors,
+            "stats": {"realtime_district_count": len(REALTIME_GU_LIST),
+                      "static_er_districts": sorted(STATIC_ER_GU),
+                      "empty_realtime_districts": [g for g, n in zip(REALTIME_GU_LIST, counts) if n == 0],
+                      "max_district_count": max(counts, default=0)},
         }
         write_json(SNAPSHOT_FILE, snapshot)
 
@@ -571,50 +383,55 @@ def refresh_all_districts(force=False):
         write_json(REFRESH_STATE_FILE, state)
         return snapshot, True, None
 
+_request_lock = threading.Lock()
+
+def refresh_if_old():
+    """스케줄러가 없을 때: 캐시가 오래됐으면 이 요청에서 갱신 (동시에 1번만)"""
+    if not REFRESH_ON_REQUEST or AUTO_REFRESH_MINUTES <= 0:
+        return
+    age = seconds_since(load_snapshot().get("updated_at"))
+    if age is not None and age < AUTO_REFRESH_MINUTES * 60:
+        return
+    if not _request_lock.acquire(blocking=False):
+        return   # 다른 요청이 갱신 중 → 기존 캐시로 응답
+    try:
+        _, refreshed, reason = refresh_all_districts()
+        print(f"[REQUEST] {'갱신 완료' if refreshed else '건너뜀: ' + str(reason)}")
+    except Exception as e:
+        print(f"[REQUEST] 갱신 오류: {e}")
+    finally:
+        _request_lock.release()
+
 
 # ------------------------------------------------------------
-# 8. 강북·마포 인접 구 병원 안내
+# 8. 자치구별 응답 (강북·마포 인접 구 안내 포함)
 # ------------------------------------------------------------
 def build_nearby(snapshot, gu):
-    """가까운 구 순서대로, 구마다 가용 병상이 많은 병원 2곳씩"""
-    districts = snapshot.get("districts", {})
+    """가까운 구 순서로, 구마다 가용 병상 많은 병원 2곳씩"""
+    near_list = NEIGHBOR_GU.get(gu) or [g for g in SEOUL_GU_LIST if ZONE_OF[g] == ZONE_OF[gu] and g != gu]
     nearby = []
-    for near_gu in neighbor_districts(gu):
-        hospitals = [dict(h, From_District=near_gu)
-                     for h in districts.get(near_gu, {}).get("hospitals", [])]
-        # 병상 확인 가능한 병원 먼저 → 가용 병상 많은 순
-        hospitals.sort(key=lambda h: (h.get("Available_Beds") is None,
-                                      -(h.get("Available_Beds") or 0)))
-        nearby.extend(hospitals[:NEARBY_PER_GU])
+    for near in near_list:
+        hs = [dict(h, From_District=near) for h in snapshot.get("districts", {}).get(near, {}).get("hospitals", [])]
+        hs.sort(key=lambda h: (h.get("Available_Beds") is None, -(h.get("Available_Beds") or 0)))
+        nearby += hs[:NEARBY_PER_GU]
     return nearby
 
-
 def district_payload(snapshot, gu):
-    # 강북·마포: 등록 응급실 병상 수 + 실시간 미제공 안내 + 인접구 실시간 정보
-    if gu in STATIC_ER_GU:
-        static_hospitals = [dict(h, District=gu, data_source="static_er_beds")
-                            for h in STATIC_ER_HOSPITALS[gu]]
-        return {
-            "district": gu,
-            "hospitals": static_hospitals,
-            "data_type": "static_er_beds",
-            "realtime_available": False,
-            "notice": "실시간 가용병상 정보가 제공되지 않아 등록 응급실 병상 수를 표시합니다.",
-            "nearby_notice": "인접 자치구의 실시간 가용병상 정보입니다.",
-            "nearby_hospitals": build_nearby(snapshot, gu) if snapshot else [],
-        }
+    if gu in STATIC_ER_GU:   # 강북·마포: 등록 병상 수 + 인접 구 실시간
+        return {"district": gu, "data_type": "static_er_beds", "realtime_available": False,
+                "hospitals": [{"Hospital_Name": n, "ER_Beds": b, "District": gu, "data_source": "static_er_beds"}
+                              for n, b in STATIC_ER_HOSPITALS[gu]],
+                "notice": "실시간 가용병상 정보가 제공되지 않아 등록 응급실 병상 수를 표시합니다.",
+                "nearby_notice": "인접 자치구의 실시간 가용병상 정보입니다.",
+                "nearby_hospitals": build_nearby(snapshot, gu)}
 
-    base = snapshot.get("districts", {}).get(gu)
-    payload = dict(base) if base else {"district": gu, "hospitals": []}
-    payload["data_type"] = "realtime"
-    payload["realtime_available"] = True
-    payload["nearby_hospitals"] = []
-    payload["notice"] = None
+    payload = {"district": gu, "hospitals": [], **snapshot.get("districts", {}).get(gu, {}),
+               "data_type": "realtime", "realtime_available": True, "nearby_hospitals": [], "notice": None}
     if not snapshot:
         payload["error"] = "병상 데이터를 준비 중입니다. 잠시 후 새로고침하세요."
-    elif not payload.get("hospitals"):
-        payload["notice"] = f"{gu} 병상 정보가 없어 인접 자치구 병원을 안내합니다."
-        payload["nearby_hospitals"] = build_nearby(snapshot, gu)
+    elif not payload["hospitals"]:
+        payload.update(notice=f"{gu} 병상 정보가 없어 인접 자치구 병원을 안내합니다.",
+                       nearby_hospitals=build_nearby(snapshot, gu))
     return payload
 
 
@@ -623,92 +440,68 @@ def district_payload(snapshot, gu):
 # ------------------------------------------------------------
 @app.get("/")
 def index():
-    """서비스 선택 메인 화면"""
     return serve_html(HOME_NAMES)
-
 
 @app.get("/analysis")
 def analysis_page():
-    """팀원 제작: 시계열 분석 + AI 예측 모델"""
     return serve_html(ANALYSIS_NAMES)
-
-
-@app.get("/api/dashboard-data")
-def dashboard_data():
-    """분석·예측 페이지용 데이터 (요청마다 파일을 다시 읽음 → 노트북 재실행 시 바로 반영)"""
-    try:
-        data, path = load_dashboard_data()
-    except (ValueError, OSError) as e:
-        return jsonify({"error": f"대시보드 데이터 파일을 읽지 못했습니다: {e}"}), 500
-    if data is None:
-        return jsonify({"error": "dashboard_data.json 파일이 없습니다. 예측 노트북을 실행한 뒤 "
-                                 "outputs 폴더째 이 서버 폴더에 두세요.",
-                        "찾은_파일명": list(DASHBOARD_NAMES),
-                        "검색한_폴더": SEARCH_ROOTS}), 404
-    # jsonify는 키를 가나다순으로 정렬함 → 파일 순서(서울 전체 먼저) 유지를 위해 json.dumps 사용
-    response = app.response_class(json.dumps(data, ensure_ascii=False),
-                                  mimetype="application/json")
-    response.headers["Cache-Control"] = "no-store"
-    return response
-
 
 @app.get("/beds")
 def beds_page():
-    """실시간 응급실 병상 관제"""
     return serve_html(BEDS_NAMES)
 
+@app.get("/api/dashboard-data")
+def dashboard_data():
+    """요청마다 파일을 다시 읽음 → 노트북 재실행 시 바로 반영"""
+    try:
+        data, _ = load_dashboard_data()
+    except (ValueError, OSError) as e:
+        return jsonify(error=f"대시보드 데이터 파일을 읽지 못했습니다: {e}"), 500
+    if data is None:
+        return jsonify(error="dashboard_data.json 파일이 없습니다. 예측 노트북을 실행한 뒤 "
+                             "outputs 폴더째 이 서버 폴더에 두세요.",
+                       찾은_파일명=list(DASHBOARD_NAMES), 검색한_폴더=SEARCH_ROOTS), 404
+    # jsonify 는 키를 정렬함 → 파일 순서 유지를 위해 json.dumps 사용
+    res = app.response_class(json.dumps(data, ensure_ascii=False), mimetype="application/json")
+    res.headers["Cache-Control"] = "no-store"
+    return res
 
 @app.get("/api/realtime-beds")
 def realtime_beds():
-    district = request.args.get("district", "강남구").strip()
-    if district not in VALID_GU:
-        return jsonify({"error": "서울시 자치구 이름이 올바르지 않습니다."}), 400
+    gu = request.args.get("district", "강남구").strip()
+    if gu not in VALID_GU:
+        return jsonify(error="서울시 자치구 이름이 올바르지 않습니다."), 400
+    refresh_if_old()
     snapshot = load_snapshot()
-    payload = district_payload(snapshot, district)
-    payload["snapshot_updated_at"] = snapshot.get("updated_at")
-    return jsonify(payload)
-
+    return jsonify({**district_payload(snapshot, gu), "snapshot_updated_at": snapshot.get("updated_at")})
 
 @app.get("/api/realtime-beds/all")
 def realtime_beds_all():
-    # 25개 구를 한 번에 → 브라우저 요청 25회 → 1회
-    snapshot = load_snapshot()
-    return jsonify({
-        "snapshot_updated_at": snapshot.get("updated_at"),
-        "snapshot_age_seconds": snapshot_age_seconds(snapshot),
-        "districts": [district_payload(snapshot, gu) for gu in SEOUL_GU_LIST],
-    })
-
+    refresh_if_old()
+    snapshot = load_snapshot()   # 25개 구를 한 번에 → 브라우저 요청 1회
+    return jsonify(snapshot_updated_at=snapshot.get("updated_at"),
+                   snapshot_age_seconds=seconds_since(snapshot.get("updated_at")),
+                   districts=[district_payload(snapshot, gu) for gu in SEOUL_GU_LIST])
 
 @app.post("/api/refresh")
 def manual_refresh():
     token = request.headers.get("X-Admin-Token") or request.args.get("token", "")
     if not ADMIN_TOKEN or token != ADMIN_TOKEN:
-        return jsonify({"error": "관리자만 갱신할 수 있습니다."}), 403
+        return jsonify(error="관리자만 갱신할 수 있습니다."), 403
     snapshot, refreshed, reason = refresh_all_districts()
-    return jsonify({"refreshed": refreshed, "reason": reason,
-                    "updated_at": snapshot.get("updated_at"),
-                    "api_usage": api_usage_status()})
-
+    return jsonify(refreshed=refreshed, reason=reason, updated_at=snapshot.get("updated_at"),
+                   api_usage=api_usage_status())
 
 @app.get("/api/status")
 def status():
     snap = load_snapshot()
-    return jsonify({
-        "bed_source": "NMC 실시간 병상 API (23개 구) + 강북·마포 정적 응급실 병상",
-        "data_go_kr": bool(DATA_GO_KR_KEY),
-        "static_er_districts": sorted(STATIC_ER_GU),
-        "snapshot_stats": snap.get("stats"),
-        "snapshot_updated_at": snap.get("updated_at"),
-        "snapshot_age_seconds": snapshot_age_seconds(snap),
-        "cached_districts": len(snap.get("districts", {})),
-        "api_usage": api_usage_status(),
-        "refresh_state": refresh_state(),
-        "full_refresh_limit": FULL_REFRESH_LIMIT,
-        "auto_refresh_minutes": AUTO_REFRESH_MINUTES,
-        "dashboard_file": find_dashboard_file(),
-    })
-
+    return jsonify(bed_source=BED_SOURCE, data_go_kr=bool(DATA_GO_KR_KEY),
+                   static_er_districts=sorted(STATIC_ER_GU), snapshot_stats=snap.get("stats"),
+                   snapshot_updated_at=snap.get("updated_at"),
+                   snapshot_age_seconds=seconds_since(snap.get("updated_at")),
+                   cached_districts=len(snap.get("districts", {})), api_usage=api_usage_status(),
+                   refresh_state=refresh_state(), full_refresh_limit=FULL_REFRESH_LIMIT,
+                   auto_refresh_minutes=AUTO_REFRESH_MINUTES, dashboard_file=find_dashboard_file())
 
 @app.get("/healthz")
 def healthz():
@@ -716,18 +509,14 @@ def healthz():
 
 
 # ------------------------------------------------------------
-# 10. 자동 갱신 스케줄러 (서버 안에서 1개만 동작)
+# 10. 자동 갱신 스케줄러 (1분마다 확인, 서버당 1개)
 # ------------------------------------------------------------
-_scheduler_lock = threading.Lock()
-_scheduler_started = False
-
-
 def _auto_refresh_loop():
     last_reason = None
     time.sleep(3)
     while True:
         try:
-            age = snapshot_age_seconds(load_snapshot())
+            age = seconds_since(load_snapshot().get("updated_at"))
             if age is None or age >= AUTO_REFRESH_MINUTES * 60:
                 _, refreshed, reason = refresh_all_districts()
                 if refreshed:
@@ -739,64 +528,56 @@ def _auto_refresh_loop():
             print(f"[AUTO] 오류: {e}")
         time.sleep(60)
 
-
-def start_scheduler():
-    global _scheduler_started
-    with _scheduler_lock:
-        if _scheduler_started or AUTO_REFRESH_MINUTES <= 0:
-            return
-        _scheduler_started = True
+# import 시점에 시작 (gunicorn 대응) / 노트북 셀 재실행 시 중복 방지
+if START_SCHEDULER and AUTO_REFRESH_MINUTES > 0 and not globals().get("_scheduler_started"):
+    _scheduler_started = True
     threading.Thread(target=_auto_refresh_loop, daemon=True).start()
 
 
-# gunicorn 으로 실행해도 스케줄러가 켜지도록 import 시점에 시작
-if START_SCHEDULER:
-    start_scheduler()
-
-
 # ------------------------------------------------------------
-# 챗봇 연결 (base.html 오른쪽 아래 챗봇 창 → /api/chat)
-# chatbot_exaone.py 가 이 파일과 같은 폴더에 있어야 함
+# 11. 챗봇 연결 (chatbot_exaone.py 가 같은 폴더에 있어야 함, Vercel 에서는 끔)
 # ------------------------------------------------------------
-from chatbot_exaone import init_chatbot
-init_chatbot(app)
-
-
-if __name__ == "__main__":
-    usage = api_usage_status()
-    print("=" * 58)
-    print("SEOUL EMERGENCY HUB V1 - WEB SERVER")
-    print("=" * 58)
-    print(f"[KEY] DATA_GO_KR   : {'OK (메인)' if DATA_GO_KR_KEY else 'MISSING → 갱신 불가'}")
-    print(f"[ADMIN] 수동 갱신    : {'ON' if ADMIN_TOKEN else 'OFF (ADMIN_TOKEN 없음)'}")
-    missing = False
-    for label, names in (("HOME", HOME_NAMES), ("ANALYSIS", ANALYSIS_NAMES), ("BEDS", BEDS_NAMES)):
-        name = first_existing(names)
-        missing |= (name is None and label != "ANALYSIS")
-        print(f"[{label:8}] {'OK  ' + find_file(name) if name else '없음 ' + names[0]}")
-    for name in SHARED_TEMPLATES:
-        path = find_file(name)
-        ok = os.path.isfile(path)
-        missing |= not ok
-        print(f"[{'COMMON':8}] {'OK  ' + path if ok else '없음 ' + name}")
-    if missing:
-        print("[안내] 실제로 있는 html 파일:")
-        for p in html_candidates():
-            print("       ", p)
-    dash_path = find_dashboard_file()
-    print(f"[DASHBOARD] {'OK  ' + dash_path if dash_path else '없음 → 분석 페이지에 안내 문구 표시'}")
-    for name in DAILY_LIMITS:
-        print(f"[LIMIT] {name:10} {usage[name]['used']}/{usage[name]['limit']} 사용")
-    print(f"[SNAPSHOT] {load_snapshot().get('updated_at') or '없음 → 자동 수집 시작'}")
-    print(f"[START] http://{'127.0.0.1' if HOST == '0.0.0.0' else HOST}:{PORT}/")
-
-    if AUTO_OPEN_BROWSER:
-        threading.Timer(1.5, lambda: webbrowser.open_new(f"http://127.0.0.1:{PORT}/")).start()
-
+if CHATBOT_ON:
     try:
-        from waitress import serve  # 여러 사람이 동시에 접속해도 안정적인 서버
-        print("[SERVER] waitress")
+        from chatbot_exaone import init_chatbot
+        init_chatbot(app)
+    except ImportError as e:
+        CHATBOT_ON = app.jinja_env.globals["chatbot_enabled"] = False
+        print(f"[CHATBOT] 연결 안 함: {e}")
+
+
+# ------------------------------------------------------------
+# 12. 서버 실행
+# ------------------------------------------------------------
+def print_startup():
+    usage = api_usage_status()["data_go_kr"]
+    print("=" * 58 + "\nSEOUL EMERGENCY HUB V2 - WEB SERVER\n" + "=" * 58)
+    print(f"[KEY]       {'OK' if DATA_GO_KR_KEY else 'DATA_GO_KR_KEY 없음 → 갱신 불가'}")
+    print(f"[ADMIN]     {'ON' if ADMIN_TOKEN else 'OFF (ADMIN_TOKEN 없음)'}")
+    pages = [("HOME", HOME_NAMES), ("BEDS", BEDS_NAMES), ("ANALYSIS", ANALYSIS_NAMES)]
+    missing = False
+    for label, names in pages + [("COMMON", (n,)) for n in SHARED_TEMPLATES]:
+        name = first_existing(names)
+        print(f"[{label:9}] {find_file(name) if name else '없음 ' + names[0]}")
+        missing |= name is None and label != "ANALYSIS"
+    if missing:
+        print("[안내] 실제로 있는 html 파일:", *html_candidates(), sep="\n    ")
+    print(f"[DASHBOARD] {find_dashboard_file() or '없음 → 분석 페이지에 안내 문구 표시'}")
+    print(f"[LIMIT]     {usage['used']}/{usage['limit']} 사용")
+    print(f"[SNAPSHOT]  {load_snapshot().get('updated_at') or '없음 → 자동 수집 시작'}")
+    print(f"[START]     http://{'127.0.0.1' if HOST == '0.0.0.0' else HOST}:{PORT}/")
+
+def run_server():
+    print_startup()
+    if AUTO_OPEN_BROWSER:
+        threading.Timer(1.5, webbrowser.open_new, [f"http://127.0.0.1:{PORT}/"]).start()
+    try:
+        from waitress import serve   # 동시 접속에 안정적인 서버
+        print("[SERVER]    waitress")
         serve(app, host=HOST, port=PORT, threads=8)
     except ImportError:
-        print("[SERVER] flask 개발 서버 (pip install waitress 권장)")
+        print("[SERVER]    flask 개발 서버 (pip install waitress 권장)")
         app.run(host=HOST, port=PORT, debug=False, use_reloader=False)
+
+if __name__ == "__main__":
+    run_server()

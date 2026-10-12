@@ -1,0 +1,12 @@
+{# 공통 푸터 : 실시간_병상관제_v1 푸터 규격 기준 #}
+{# realtime-updated-at 은 병상관제 JS가 갱신 시각을 채우는 자리 (다른 페이지에서는 footer_note 문구 표시) #}
+
+<footer class="relative border-t border-slate-200 bg-white mt-10">
+    <div class="max-w-[1600px] mx-auto px-6 md:px-8 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-slate-800">SEOUL EMERGENCY HUB</span>
+            <span class="text-[11px] text-slate-400 font-medium">© 2026 All rights reserved.</span>
+        </div>
+        <div id="realtime-updated-at" class="text-[11px] leading-relaxed text-slate-500 font-medium md:text-right">{{ footer_note | default('') }}</div>
+    </div>
+</footer>
