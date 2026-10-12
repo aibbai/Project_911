@@ -1,3 +1,6 @@
+/* 브라우저 강제 다크 모드 차단 (삼성 인터넷·크롬 자동 다크) */
+:root { color-scheme: only light; }
+
 /* 실시간_병상관제_v1 화면 전용 스타일 */
 
 * { box-sizing:border-box; margin:0; padding:0; font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif; }

@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{# 헤더 문구 #}
+{% set active_page = 'predict' %}
+{% set topbar_icon = 'fa-chart-line' %}
+{% set topbar_text = 'AI 응급 이송 수요 예측' %}
+{% set header_icon = 'fa-chart-line' %}
+{% set header_subtitle = '구급 수요 분석 및 AI 예측 결과 확인 • 월 단위 예측' %}
+{% set footer_note = '119 구급 수요 분석 · AI 응급 수요 예측 대시보드' %}
+
+{% block title %}AI 응급 수요 예측{% endblock %}
+
+
+{% block head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/predict.css') }}">
+
+{% endblock %}
+
+{% block content %}
+<main class="max-w-[1600px] mx-auto p-6 md:p-8">
+<div class="predict-wrap min-w-0 max-w-full">
+    <div class="error-banner" id="errorBanner">
+        대시보드 데이터를 찾지 못했습니다. <code>dashboard_build</code>를 실행한 뒤
+        서버 폴더의 <code>outputs/dashboard_data.json</code>을 새 파일로 바꿔 주세요.
+    </div>
+    <div class="warn-banner" id="warnBanner"></div>
+
+    <!-- 페이지 제목 -->
+    <div class="page-head">
+        <div>
+            <h2>
+                서울시 119 구급 이송 예측
+            </h2>
+        </div>
+        <div class="system-info">
+            <span class="pulse-dot"></span>
+            <span id="systemInfo"></span>
+        </div>
+    </div>
+
+    <!-- SECTION : 구별 -->
+    <section class="predict-section">
+        <div class="section-header">
+            <h3>구급 이송 수요 예측</h3>
+        </div>
+
+        <div class="controls-bar p-card">
+            <div class="control-group">
+                <span class="control-label"><i data-lucide="calendar"></i> 예측 기간 선택 (월별)</span>
+                <span class="range-chip" id="forecastRange">2026.01 ~ 2026.06</span>
+                <div class="tab-group" id="monthTabs">
+                    <button class="tab-btn" data-forecast-month="1">1개월</button>
+                    <button class="tab-btn" data-forecast-month="2">2개월</button>
+                    <button class="tab-btn" data-forecast-month="3">3개월</button>
+                    <button class="tab-btn" data-forecast-month="4">4개월</button>
+                    <button class="tab-btn" data-forecast-month="5">5개월</button>
+                    <button class="tab-btn active" data-forecast-month="6">6개월</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <span class="control-label"><i data-lucide="map-pin"></i> 선택 지역</span>
+                <span class="gu-chip" id="guChip">서울특별시 전체</span>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card p-card predict-inline-1">
+                <div class="kpi-header">
+                    <span>선택 기간 월평균 예상 이송</span>
+                    <i data-lucide="ambulance" class="predict-inline-2"></i>
+                </div>
+                <div class="kpi-value" id="kpiAvgDemand">-</div>
+                <div class="kpi-sub" id="kpiAvgSub">-</div>
+            </div>
+            <div class="kpi-card p-card predict-inline-3">
+                <div class="kpi-header">
+                    <span>최고 피크 예상 월</span>
+                    <i data-lucide="alert-triangle" class="predict-inline-4"></i>
+                </div>
+                <div class="kpi-value" id="kpiPeakMonth">-</div>
+                <div class="kpi-sub predict-inline-5" id="kpiPeakSub">-</div>
+            </div>
+            <div class="kpi-card p-card predict-inline-6">
+                <div class="kpi-header">
+                    <span id="kpiRiskLabel">전년 동기 대비 증가율 1위 지역</span>
+                    <i data-lucide="shield-alert" class="predict-inline-7"></i>
+                </div>
+                <div class="kpi-value" id="kpiRiskGu">-</div>
+                <div class="kpi-sub" id="kpiRiskSub">-</div>
+            </div>
+            <div class="kpi-card p-card predict-inline-8">
+                <div class="kpi-header">
+                    <span id="kpiGuAccLabel">서울 전체 예측 모델 정확도</span>
+                    <i data-lucide="target" class="predict-inline-9"></i>
+                </div>
+                <div class="kpi-value" id="kpiGuAcc">-</div>
+                <div class="kpi-sub predict-inline-5" id="kpiGuAccSub">-</div>
+            </div>
+        </div>
+
+        <div class="main-grid min-w-0 max-w-full">
+            <div class="card p-card predict-inline-10 min-w-0 max-w-full" id="demandCard">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="line-chart" class="predict-inline-12"></i>
+                        <span><span id="chartGu">서울특별시 전체</span> 월별 이송 실적 · 예측</span>
+                    </span>
+                    <span class="hint" id="chartSubtitle"></span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="demandChart"></canvas>
+                </div>
+            </div>
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="bar-chart-2" class="predict-inline-13"></i>
+                        자치구별 예상 수요 순위
+                    </span>
+                    <span class="hint">클릭하면 선택</span>
+                </div>
+                <div class="district-list" id="districtList"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 상세 분석 (접기) -->
+    <details class="detail-fold" id="detailFold">
+        <summary class="p-card">
+            <div>
+                <div class="detail-fold-title"><i data-lucide="microscope"></i> 상세 분석</div>
+                <div class="detail-fold-list">
+                    <span>평가 기간 정확도</span>
+                    <span>생활인구 예측</span>
+                    <span>이송 × 인구 관계</span>
+                    <span>사고 유형 · 연령</span>
+                    <span>모델 명세</span>
+                </div>
+            </div>
+            <span class="fold-btn">
+                <span class="open-text">상세 보기 ▾</span>
+                <span class="close-text">접기 ▴</span>
+            </span>
+        </summary>
+        <div class="detail-fold-body">
+    <!-- SECTION : 평가 기간 결과 -->
+    <section class="predict-section">
+        <div class="section-header">
+            <h3>평가 기간 자치구별 정확도</h3>
+        </div>
+        <p class="section-desc" id="testDesc"></p>
+        <div class="sub-grid min-w-0 max-w-full">
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="bar-chart-horizontal" class="predict-inline-2"></i>
+                        자치구별 평가 정확도
+                    </span>
+                    <span class="hint">막대 클릭 시 선택</span>
+                </div>
+                <div class="tall-chart"><canvas id="guAccChart"></canvas></div>
+            </div>
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="stethoscope" class="predict-inline-13"></i>
+                        자치구별 오차 진단
+                    </span>
+                    <span class="hint">편향 + : 예측이 실제보다 많음 · 행 클릭 시 선택</span>
+                </div>
+                <div class="scroll-box min-w-0 max-w-full overflow-x-auto">
+                    <table class="fc-table predict-inline-15" id="diagTable"></table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION : 생활인구 예측 -->
+    <section class="predict-section" id="popSection">
+        <div class="section-header">
+            <h3>생활인구(일 최대 인구) 예측</h3>
+        </div>
+        <p class="section-desc" id="popDesc"></p>
+        <div class="stat-row" id="popStats"></div>
+        <div class="main-grid min-w-0 max-w-full">
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="users" class="predict-inline-13"></i>
+                        <span><span id="popGu">서울특별시 전체</span> 일별 실제 vs 예측</span>
+                    </span>
+                    <span class="hint">위 순위·표에서 선택한 지역</span>
+                </div>
+                <div class="chart-container"><canvas id="popChart"></canvas></div>
+            </div>
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="target" class="predict-inline-9"></i>
+                        자치구별 평가 정확도
+                    </span>
+                </div>
+                <div class="chart-container"><canvas id="popAccChart"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION : 이송 × 생활인구 관계 -->
+    <section class="predict-section" id="relSection">
+        <div class="section-header">
+            <h3>이송 건수와 생활인구의 관계</h3>
+        </div>
+        <div class="insight" id="relInsight"></div>
+        <div class="sub-grid min-w-0 max-w-full">
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="git-compare" class="predict-inline-12"></i>
+                        인구 특성별 상관계수
+                    </span>
+                    <span class="hint">구 사이 비교 vs 같은 구 안 변화(계절 제거)</span>
+                </div>
+                <div class="tall-chart predict-inline-18"><canvas id="corrChart"></canvas></div>
+            </div>
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="activity" class="predict-inline-7"></i>
+                        인구 1만 명당 월 이송률
+                    </span>
+                    <span class="hint">월평균 이송 ÷ 월평균 생활인구</span>
+                </div>
+                <div class="tall-chart predict-inline-18"><canvas id="rateChart"></canvas></div>
+            </div>
+        </div>
+        <div class="card p-card min-w-0 max-w-full">
+            <div class="card-title">
+                <span class="predict-inline-11">
+                    <i data-lucide="layers" class="predict-inline-2"></i>
+                    특성 조합별 이송 건수 예측 평가 정확도
+                </span>
+                <span class="hint">인구 특성을 넣었을 때 정확도가 오르는지 비교</span>
+            </div>
+            <div class="mid-chart"><canvas id="relModelChart"></canvas></div>
+        </div>
+    </section>
+
+    <!-- SECTION : 표본 데이터 분석 -->
+    <section class="predict-section" id="sampleSection">
+        <div class="section-header">
+            <h3>구급 사고 유형 및 연령군 분석</h3>
+        </div>
+        <div class="sub-grid min-w-0 max-w-full">
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="pie-chart" class="predict-inline-2"></i>
+                        구급 사고 유형 구성비
+                    </span>
+                </div>
+                <div class="predict-inline-19"><canvas id="diseaseChart"></canvas></div>
+                <p class="notice" id="sampleNote1"></p>
+            </div>
+            <div class="card p-card min-w-0 max-w-full">
+                <div class="card-title">
+                    <span class="predict-inline-11">
+                        <i data-lucide="users" class="predict-inline-20"></i>
+                        연령대별 구급 환자 비율
+                    </span>
+                </div>
+                <div class="predict-inline-19"><canvas id="ageChart"></canvas></div>
+                <p class="notice" id="sampleNote2"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION : AI 모델 설명 -->
+    <section class="ai-model-section p-card predict-section">
+        <div class="section-header">
+            <h3 class="predict-inline-12">AI 예측 모델 알고리즘 및 검증 결과</h3>
+        </div>
+        <p class="section-desc" id="modelIntro"></p>
+
+        <div class="model-header-cards">
+            <div class="accuracy-card">
+                <div>
+                    <div class="predict-inline-21" id="bestAccLabel">최종 모델 평가 정확도</div>
+                    <div class="accuracy-val" id="bestAcc">-</div>
+                    <div class="predict-inline-22" id="bestAccSub">-</div>
+                </div>
+                <i data-lucide="check-circle-2" class="predict-inline-23"></i>
+            </div>
+            <div class="accuracy-card predict-inline-24">
+                <div>
+                    <div class="predict-inline-21">기준선(마지막 달 유지) 대비</div>
+                    <div class="accuracy-val predict-inline-25" id="baseGain">-</div>
+                    <div class="predict-inline-26" id="baseGainSub">-</div>
+                </div>
+                <i data-lucide="trending-up" class="predict-inline-27"></i>
+            </div>
+        </div>
+
+        <div class="sub-grid min-w-0 max-w-full">
+            <div class="model-card">
+                <div class="model-card-header"><i data-lucide="database"></i> 학습 데이터 정보</div>
+                <ul id="dataInfo"></ul>
+            </div>
+            <div class="model-card">
+                <div class="model-card-header"><i data-lucide="layers"></i> 검증 방식</div>
+                <ul id="validInfo"></ul>
+            </div>
+        </div>
+
+        <details class="model-card" id="modelDetails">
+            <summary>
+                <span class="model-card-header"><i data-lucide="award"></i> 모델별 정확도 비교</span>
+                <span class="fold-btn">
+                    <span class="open-text">상세 보기 ▾</span>
+                    <span class="close-text">접기 ▴</span>
+                </span>
+            </summary>
+            <div class="fold-body">
+                <div class="model-chart-box"><canvas id="modelChart"></canvas></div>
+
+                <div class="fold-title">구간 · 방식별 상세 점수</div>
+                <div class="table-wrap scroll-box predict-inline-28 min-w-0 max-w-full overflow-x-auto">
+                    <table class="fc-table" id="detailTable"></table>
+                </div>
+
+                <div class="fold-title">정확도 개선 실험 (검증 6개월 정확도)</div>
+                <p class="section-desc predict-inline-29">기본 특성에 달력 특성, 증감량 예측을 더했을 때의 비교입니다.</p>
+                <div class="mid-chart"><canvas id="expChart"></canvas></div>
+            </div>
+        </details>
+    </section>
+        </div>
+    </details>
+</div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/predict.js') }}"></script>
+{% endblock %}

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="only light">
+    <meta name="supported-color-schemes" content="light">
     <title>{% block title %}스마트 응급의료 데이터 센터{% endblock %}</title>
 
     <!-- 공통 리소스 (모든 페이지) -->
@@ -130,8 +132,8 @@
         {% include 'footer.html' %}
     {% endblock %}
 
-    <!-- 챗봇 창 : 페이지에서 chatbot 블록을 빈 블록으로 덮어쓰면 숨김 -->
-    {% block chatbot %}
+    <!-- 챗봇 창 : 페이지에서 chatbot 블록을 빈 블록으로 덮어쓰면 숨김 / 서버에서 챗봇을 끄면(Vercel) 숨김 -->
+    {% block chatbot %}{% if chatbot_enabled %}
     <button id="cb-btn" type="button" title="응급의료 챗봇"><i class="fa-solid fa-comment-medical"></i></button>
 
     <div id="cb-panel">
@@ -271,7 +273,7 @@
         });
     })();
     </script>
-    {% endblock %}
+    {% endif %}{% endblock %}
 
     <!-- 페이지별 JS -->
     {% block scripts %}{% endblock %}
