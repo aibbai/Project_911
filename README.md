@@ -1,19 +1,119 @@
-<<<<<<< HEAD
-<div><img src=https://notion-emojis.s3-us-west-2.amazonaws.com/prod/svg-twitter/1f691.svg></div>
-# 응급의료 대응 최적화 프로젝트https://github.com/aibbai/Project_911
-> 1st PROJECTS
-> 프로젝트 119
-=======
-# 🎯 1st PROJECTS
+<img src=https://notion-emojis.s3-us-west-2.amazonaws.com/prod/svg-twitter/1f691.svg width="50">  
 
-> 프로젝트 911 (ctrl+shift+v)
->>>>>>> 3a8aa0913a969502da5c7107bab7d6902e53e981
+# 응급의료 대응 최적화 프로젝트
+> 선정한 서울시 자치구의 구급통계·생활인구·응급의료시설 데이터를 활용해 지역별 구급 수요를 분석하고, 미래 수요 예측과 실시간 응급실 정보를 연계하는 AI 프로젝트 
 
-## 📌 프로젝트 개요
 
-- **프로젝트명**: 프로젝트 119
-- **개발 기간**: 2026.09.28 ~ 2025.10.11 (2주)https://github.com/aibbai/Project_911
-- **개발 인원**: 4명
+## 📑 목차
+[배경 및 문제 정의](url)<br>
+[프로젝트 목표](url)<br>
+[프로젝트 소개](url)<br>
+[데이터 수집 및 분석](url)<br>
+[모델 개발 및 성능 평가](url)<br>
+[웹 서비스 구현](url)<br>
+[프로젝트 결론](url)<br>
+[활용 데이터](url)<br>
+
+## 🎯 배경 및 문제 정의
+
+### 프로젝트 배경
+
+- 구급 활동은 지역·시기·생활인구 등에 따라 발생 패턴이 달라질 수 있음
+- 생활인구와 구급 수요의 관계를 분석하면 지역별 특성을 파악할 수 있음
+- 미래 구급 수요를 예측하면 지역별 응급의료 대응을 지원할 수 있음
+- 실제 응급상황에서는 구급 수요뿐 아니라 현재 이용 가능한 응급실·병상 정보도 중요함
+
+### 핵심 질문
+
+- 어떤 자치구에서 구급 수요가 높은가?
+- 생활인구와 구급 수요에는 어떤 관계가 있는가?
+- 미래 구급 수요를 예측할 수 있는가?
+- 예측 수요와 응급의료 자원 현황을 함께 확인할 수 있는가?
+
+## 🎯 프로젝트 목표
+
+1. **자치구별 구급 수요 분석**
+    - 출동건수·이송건수·이송환자수 비교
+    - 환자유형 및 월별·계절별 패턴 분석
+2. **생활인구와 구급 수요 관계 분석**
+    - 주간·야간 생활인구와 구급 수요 비교
+    - 생활인구 규모 대비 구급 수요 분석
+3. **구급 수요 예측**
+    - 과거 구급활동 데이터를 기반으로 미래 출동 또는 이송 수요 예측
+    - 실제값과 예측값 비교 및 모델 평가
+4. **응급의료시설 연계**
+    - 응급의료기관 위치·시설 정보 확인
+    - 실시간 응급실 가용병상 정보 연계
+5. **웹 서비스 구현**
+    - 지역 분석·수요 예측·응급의료시설·병상 현황 통합 제공
+
+## 📌 프로젝트 소개
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드2.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드4.JPG"><img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드5.JPG"><img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드7.JPG">
+
+
+## 📝데이터 수집 및 분석
+
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드9.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드13.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드16.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드18.JPG">
+
+## 🔍 모델 개발 및 성능 평가
+
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드23.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드26.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드27.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드28.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드30.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드32.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드33.JPG">
+
+## 💻 웹 서비스 구현 
+
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드36.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드38.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드39.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드40.JPG">
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드41.JPG">
+
+## 🚨 프로젝트 결론
+
+<img width="960" height="540" alt="Image"
+src="https://raw.githubusercontent.com/aibbai/Project_911/master/Jiyoon/ppt이미지/슬라이드42.JPG">
+
+## 📚 활용 데이터
+
+  - 소방청 구급통계 서비스 API
+  - 서울시 소방 구급 출동 현황
+  - 서울시 119 구급활동 실적
+  - 자치구단위 서울생활인구
+  - 응급의료기관 정보 조회 API
+  - 전국 응급의료기관 표준데이터
+
+##
+
+- **프로젝트 기간**: 2026.09.28 ~ 2025.10.11 (2주)
 - **주요 기술**:  
    <div>
      <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
@@ -36,34 +136,3 @@
      <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white">
      <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
    </div>
-
-## 📑 목차
-[1. 프로젝트 소개](url)<br>
-[2. 데이터 수집 및 분석](url)<br>
-[3. 모델 개발 및 성능 평가](url)<br>
-[4. 웹 서비스 구현](url)<br>
-[5. 프로젝트 결과](url)<br>
-
-## Project-overview
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/1b136187-8dae-420f-9439-138f9a6a1945" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/cc821a8a-e78c-48c3-8282-f0f4d0e907a9" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/5dae88c0-ac2b-4acf-bab9-7b5617767c93" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/580f9ef5-4a25-4053-a269-a8e7e8e2f9e2" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/279d1fe2-2fca-4f21-88d4-6fe124cd300a" />
-
-
-## Data Preprocessing
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/ff634205-b56b-44ff-8aa0-8efaee125ec8" />
-
-## Model Development & Performance Evaluation
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/40a55104-06d3-4de5-b100-9dcd4e5dcdc5" />
-
-## Web Service Implementation
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/ca21d6b1-7a1b-407a-9f25-bcb8fefa4e9a" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/c2d93570-613f-4a74-85c9-8307c3665e9e" />
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/4161274f-a1b8-42a5-a2e6-b0126e6a9091" />
-
-
-## Project Contribution & Results
-<img width="960" height="540" alt="Image" src="https://github.com/user-attachments/assets/cbd785b9-659e-4bf8-8904-7c84e3972aac" />
-
